@@ -2,14 +2,14 @@
 //
 // Please see the included LICENSE file for more information.
 
-import {Postgres, SQLite, MySQL} from "db-abstraction";
-import {Collector} from "./Collector";
-import {Logger} from "./Logger";
+import { Postgres, SQLite, MySQL } from 'db-abstraction';
+import { Collector } from './Collector';
+import { Logger } from './Logger';
 
 /** @ignore */
 require('dotenv').config();
 
-(async() => {
+(async () => {
     let database;
 
     if (!process.env.NODE_ENV || process.env.NODE_ENV.toLowerCase() !== 'production') {
