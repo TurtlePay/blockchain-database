@@ -1,0 +1,53 @@
+{
+  "name": "turtlepay-blockchain-database",
+  "version": "0.0.1",
+  "description": "TurtlePay Blockchain Database Interface",
+  "main": "dist/index.js",
+  "scripts": {
+    "preinstall": "node -e \"if (process.env.npm_execpath.indexOf('yarn') === -1) throw new Error('Use yarn for installing: https://yarnpkg.com/en/docs/install')\"",
+    "install": "yarn build",
+    "build": "./node_modules/.bin/tsc",
+    "docs": "./node_modules/.bin/typedoc && touch docs/.nojekyll && git restore docs/CNAME",
+    "test": "yarn style",
+    "style": "./node_modules/.bin/eslint src/**/*.ts",
+    "fix-style": "./node_modules/.bin/eslint --fix src/**/*.ts",
+    "start": "node ./dist/launch.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/turtlepay/blockchain-db.git"
+  },
+  "keywords": [
+    "TurtlePay",
+    "TurtleCoin",
+    "Blockchain",
+    "Database"
+  ],
+  "author": "The TurtlePay Developers",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/turtlepay/blockchain-database/issues"
+  },
+  "homepage": "https://github.com/turtlepay/blockchain-database#readme",
+  "dependencies": {
+    "big-integer": "^1.6.48",
+    "db-abstraction": "^0.0.10",
+    "dotenv": "^8.2.0",
+    "node-metronome": "0.0.12",
+    "turtlecoin-utils": "^3.0.4",
+    "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "@types/node": "^14.6.0",
+    "@typescript-eslint/eslint-plugin": "^3.9.1",
+    "@typescript-eslint/parser": "^3.9.1",
+    "eslint": "^7.7.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "typedoc": "^0.19.1",
+    "typescript": "^3.9.7"
+  }
+}
