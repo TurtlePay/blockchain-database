@@ -876,7 +876,7 @@ export class BlockchainDB extends ITurtleCoind {
 
             if (block.txns) {
                 for (const tx of block.txns) {
-                    l_transactions.push([await tx.hash(), await block.hash(), tx.isCoinbase, tx.toString()]);
+                    l_transactions.push([await tx.hash(), await block.hash(), (tx.isCoinbase) ? 1 : 0, tx.toString()]);
 
                     l_transaction_meta.push([await tx.hash(), tx.fee, tx.amount, tx.size]);
 
