@@ -1,17 +1,20 @@
 {
   "name": "turtlepay-blockchain-database",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "TurtlePay Blockchain Database Interface",
   "main": "dist/index.js",
+  "files": [
+    "dist/*"
+  ],
   "scripts": {
     "preinstall": "node -e \"if (process.env.npm_execpath.indexOf('yarn') === -1) throw new Error('Use yarn for installing: https://yarnpkg.com/en/docs/install')\"",
-    "install": "yarn build",
     "build": "./node_modules/.bin/tsc",
     "docs": "./node_modules/.bin/typedoc && touch docs/.nojekyll && git restore docs/CNAME",
     "test": "yarn style",
     "style": "./node_modules/.bin/eslint src/**/*.ts",
     "fix-style": "./node_modules/.bin/eslint --fix src/**/*.ts",
-    "start": "node ./dist/launch.js"
+    "start": "node ./dist/launch.js",
+    "prepublishOnly": "yarn build"
   },
   "repository": {
     "type": "git",
