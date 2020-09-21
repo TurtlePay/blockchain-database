@@ -8,6 +8,7 @@ import { Logger } from './Logger';
 /** @ignore */
 require('dotenv').config();
 
+/** @ignore */
 export function checkProduction () {
     if (!process.env.NODE_ENV || process.env.NODE_ENV.toLowerCase() !== 'production') {
         Logger.warn('Node.JS is not running in production mode. ' +
