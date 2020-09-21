@@ -162,11 +162,8 @@ export class BlockchainDB extends ITurtleCoind {
     private async getTransactionsMetaByBlock (hash: string): Promise<TurtleCoindInterfaces.TransactionSummary[]> {
         const [, rows] = await this.m_db.query(
             'SELECT transactions.hash AS hash, fee, amount, size FROM transactions LEFT JOIN transaction_meta ' +
-            'ON transaction_meta.hash = transactions.hash WHERE transactions.block_hash = ?', [hash])
-            .catch(err => {
-                console.log('getTransactionsMetaByBlock', err, hash);
-                throw err;
-            });
+            'ON transaction_meta.hash = transactions.hash WHERE transactions.block_hash = ? ORDER BY coinbase',
+            [hash]);
 
         return rows
             .map(row => {
