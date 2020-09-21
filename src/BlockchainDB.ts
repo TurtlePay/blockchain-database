@@ -310,10 +310,41 @@ export class BlockchainDB extends ITurtleCoind {
 
         if (count === 0) throw new Error('Information key not found');
 
+        const topBlock = await this.lastBlock();
+
+        const transactions = await this.getUserTransactionsCount();
+
         try {
             const result: TurtleCoindInterfaces.IInfo = JSON.parse(rows[0].data);
 
+            /**
+             * We have to overwrite a few of these values so that it reflects
+             * the current status of the database in the response
+             */
+
+            result.isCacheApi = true;
+
+            result.height = topBlock.height;
+
+            result.networkHeight--;
+
+            if (result.height !== result.networkHeight) {
+                result.synced = false;
+            }
+
+            result.difficulty = topBlock.difficulty;
+
+            result.hashrate = Math.round(result.difficulty / 30);
+
+            result.lastBlockIndex = topBlock.height;
+
+            result.majorVersion = topBlock.majorVersion;
+
+            result.minorVersion = topBlock.minorVersion;
+
             result.startTime = new Date((result as any).startTime);
+
+            result.transactionsSize = transactions;
 
             return result;
         } catch {
@@ -359,6 +390,16 @@ export class BlockchainDB extends ITurtleCoind {
         if (count === 0) throw new Error('Transaction not found: ' + hash);
 
         return Transaction.from(rows[0].data);
+    }
+
+    /**
+     * Retrieves the number of user transactions in the database
+     * @private
+     */
+    private async getUserTransactionsCount (): Promise<number> {
+        const [, rows] = await this.m_db.query('SELECT COUNT(*) AS cnt FROM transactions WHERE coinbase = 0');
+
+        return parseInt(rows[0].cnt, 10);
     }
 
     /**
@@ -1226,21 +1267,7 @@ export class BlockchainDB extends ITurtleCoind {
      * Retrieves the node information
      */
     public async info (): Promise<TurtleCoindInterfaces.IInfo> {
-        const info = await this.getInformation();
-
-        const topBlockHeight = await this.getTopBlockHeight();
-
-        info.isCacheApi = true;
-
-        info.height = topBlockHeight;
-
-        info.networkHeight--;
-
-        if (info.height !== info.networkHeight) {
-            info.synced = false;
-        }
-
-        return info;
+        return await this.getInformation();
     }
 
     /**
