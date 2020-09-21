@@ -1,6 +1,6 @@
 {
   "name": "turtlepay-blockchain-database",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "TurtlePay Blockchain Database Interface",
   "main": "dist/index.js",
   "files": [

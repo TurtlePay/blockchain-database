@@ -110,7 +110,9 @@ export class BlockchainDB extends ITurtleCoind {
                 'SELECT height FROM blockchain WHERE ' + clauses.join(' OR ') + ' ORDER BY height DESC LIMIT 1');
 
             if (count !== 0) {
-                syncHeight = rows[0].height++;
+                syncHeight = parseInt(rows[0].height, 10);
+
+                syncHeight++;
             }
         }
 
@@ -120,7 +122,9 @@ export class BlockchainDB extends ITurtleCoind {
                 [timestamp]);
 
             if (count !== 0) {
-                syncHeight = rows[0].height;
+                syncHeight = parseInt(rows[0].height, 10);
+
+                syncHeight++;
             }
         }
 
@@ -144,9 +148,9 @@ export class BlockchainDB extends ITurtleCoind {
 
         return {
             hash: rows[0].hash,
-            amountOut: rows[0].amount,
-            fee: rows[0].fee,
-            size: rows[0].size
+            amountOut: parseInt(rows[0].amount, 10),
+            fee: parseInt(rows[0].fee, 10),
+            size: parseInt(rows[0].size, 10)
         };
     }
 
@@ -168,9 +172,9 @@ export class BlockchainDB extends ITurtleCoind {
             .map(row => {
                 return {
                     hash: row.hash,
-                    amountOut: row.amount,
-                    fee: row.fee,
-                    size: row.size
+                    amountOut: parseInt(row.amount, 10),
+                    fee: parseInt(row.fee, 10),
+                    size: parseInt(row.size, 10)
                 };
             });
     }
@@ -256,24 +260,24 @@ export class BlockchainDB extends ITurtleCoind {
                 return {
                     hash: row.hash,
                     prevHash: row.prevHash,
-                    height: row.height,
-                    baseReward: row.baseReward,
-                    difficulty: row.difficulty,
-                    majorVersion: row.majorVersion,
-                    minorVersion: row.minorVersion,
-                    nonce: row.nonce,
-                    size: row.size,
+                    height: parseInt(row.height, 10),
+                    baseReward: parseInt(row.baseReward, 10),
+                    difficulty: parseInt(row.difficulty, 10),
+                    majorVersion: parseInt(row.majorVersion, 10),
+                    minorVersion: parseInt(row.minorVersion, 10),
+                    nonce: parseInt(row.nonce, 10),
+                    size: parseInt(row.size),
                     timestamp: new Date(row.utctimestamp * 1000),
                     alreadyGeneratedCoins: BigInteger(row.alreadyGeneratedCoins),
-                    alreadyGeneratedTransactions: row.alreadyGeneratedTransactions,
-                    reward: row.reward,
-                    sizeMedian: row.sizeMedian,
-                    totalFeeAmount: row.totalFeeAmount,
-                    transactionsCumulativeSize: row.transactionsCumulativeSize,
-                    transactionCount: row.transactionsCount,
-                    depth: topHeight - row.height,
-                    orphan: (row.orphan === 1),
-                    penalty: row.penalty
+                    alreadyGeneratedTransactions: parseInt(row.alreadyGeneratedTransactions, 10),
+                    reward: parseInt(row.reward, 10),
+                    sizeMedian: parseInt(row.sizeMedian, 10),
+                    totalFeeAmount: parseInt(row.totalFeeAmount, 10),
+                    transactionsCumulativeSize: parseInt(row.transactionsCumulativeSize, 10),
+                    transactionCount: parseInt(row.transactionsCount, 10),
+                    depth: topHeight - parseInt(row.height, 10),
+                    orphan: (row.orphan === 1 || row.orpahn === '1'),
+                    penalty: parseInt(row.penalty, 10)
                 };
             });
     }
@@ -334,7 +338,7 @@ export class BlockchainDB extends ITurtleCoind {
 
         if (count === 0) throw new Error('No blocks in database');
 
-        return rows[0].height;
+        return parseInt(rows[0].height, 10);
     }
 
     /**
@@ -375,7 +379,7 @@ export class BlockchainDB extends ITurtleCoind {
 
             rows.map(elem => insert(elem.hash));
 
-            let bottomHeight = rows[rows.length - 1].height;
+            let bottomHeight = parseInt(rows[rows.length - 1].height, 10);
             let n = 1;
 
             do {
@@ -436,7 +440,7 @@ export class BlockchainDB extends ITurtleCoind {
 
         if (count === 0) throw new Error('Block not found: ' + hash);
 
-        return rows[0].height;
+        return parseInt(rows[0].height, 10);
     }
 
     /**
@@ -704,11 +708,11 @@ export class BlockchainDB extends ITurtleCoind {
 
         return rows.map(row => {
             return {
-                timestamp: row.utctimestamp,
-                difficulty: row.difficulty,
-                nonce: row.nonce,
-                size: row.nonce,
-                txnCount: row.transactionsCount
+                timestamp: parseInt(row.utctimestamp, 10),
+                difficulty: parseInt(row.difficulty, 10),
+                nonce: parseInt(row.nonce, 10),
+                size: parseInt(row.nonce, 10),
+                txnCount: parseInt(row.transactionsCount, 10)
             };
         });
     }
@@ -1117,7 +1121,7 @@ export class BlockchainDB extends ITurtleCoind {
 
         if (!count) throw new Error('Error');
 
-        return rows[0].cnt;
+        return parseInt(rows[0].cnt, 10);
     }
 
     /**
@@ -1178,7 +1182,7 @@ export class BlockchainDB extends ITurtleCoind {
 
         return {
             height: topBlockHeight,
-            networkHeight: info.networkHeight - 1
+            networkHeight: info.networkHeight--
         };
     }
 
@@ -1203,7 +1207,7 @@ export class BlockchainDB extends ITurtleCoind {
 
             results.push({
                 hash: txn,
-                indexes: idxes.map(elem => elem.globalIdx)
+                indexes: idxes.map(elem => parseInt(elem.globalIdx, 10))
             });
         }
 
@@ -1223,6 +1227,10 @@ export class BlockchainDB extends ITurtleCoind {
         info.height = topBlockHeight;
 
         info.networkHeight--;
+
+        if (info.height !== info.networkHeight) {
+            info.synced = false;
+        }
 
         return info;
     }
@@ -1258,7 +1266,7 @@ export class BlockchainDB extends ITurtleCoind {
 
             if (count === 0) throw new Error('Amount not found in database');
 
-            return rows[0].maximum;
+            return parseInt(rows[0].maximum, 10);
         };
 
         const random = (max: number): number => {
@@ -1288,7 +1296,7 @@ export class BlockchainDB extends ITurtleCoind {
                 amount: amount,
                 outputs: rows.map(row => {
                     return {
-                        index: row.globalIdx,
+                        index: parseInt(row.globalIdx, 10),
                         key: row.outputKey
                     };
                 })
@@ -1669,10 +1677,10 @@ export class BlockchainDB extends ITurtleCoind {
 
         return rows.map(row => {
             return {
-                amountOut: row.amount,
-                fee: row.fee,
+                amountOut: parseInt(row.amount, 10),
+                fee: parseInt(row.fee, 10),
                 hash: row.hash,
-                size: row.size
+                size: parseInt(row.size, 10)
             };
         });
     }
