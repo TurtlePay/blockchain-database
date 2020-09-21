@@ -4,3 +4,4 @@
 
 export { BlockchainDB } from './BlockchainDB';
 export { Collector } from './Collector';
+export { getDatabase } from './Common';

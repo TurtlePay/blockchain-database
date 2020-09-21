@@ -16,7 +16,10 @@ export function checkProduction () {
     }
 }
 
-/** @ignore */
+/**
+ * Uses the environment variables or a .env file in the project's root
+ * to determine which underlying database type to use with the package
+ */
 export async function getDatabase (): Promise<IDatabase> {
     let database;
 
