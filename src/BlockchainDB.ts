@@ -765,8 +765,25 @@ export class BlockchainDB extends ITurtleCoind {
      * Resets the blockchain database
      */
     public async reset (): Promise<void> {
-        await this.m_db.query(
-            'DELETE FROM blocks');
+        try {
+            await this.m_db.query(
+                'TRUNCATE blocks CASCADE');
+
+            await this.m_db.query(
+                'TRUNCATE information CASCADE');
+
+            await this.m_db.query(
+                'TRUNCATE transaction_pool CASCADE');
+        } catch {
+            await this.m_db.query(
+                'DELETE FROM blocks');
+
+            await this.m_db.query(
+                'DELETE FROM information');
+
+            await this.m_db.query(
+                'DELETE FROM transaction_pool');
+        }
     }
 
     /**
