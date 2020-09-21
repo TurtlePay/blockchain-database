@@ -14,6 +14,8 @@
     "style": "./node_modules/.bin/eslint src/**/*.ts",
     "fix-style": "./node_modules/.bin/eslint --fix src/**/*.ts",
     "start": "node ./dist/launch.js",
+    "rewind": "node ./dist/rewind.js",
+    "reset": "node ./dist/reset.js",
     "prepublishOnly": "yarn build"
   },
   "repository": {

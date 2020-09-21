@@ -267,7 +267,7 @@ export class BlockchainDB extends ITurtleCoind {
                     minorVersion: parseInt(row.minorVersion, 10),
                     nonce: parseInt(row.nonce, 10),
                     size: parseInt(row.size),
-                    timestamp: new Date(row.utctimestamp * 1000),
+                    timestamp: new Date(parseInt(row.utctimestamp, 10) * 1000),
                     alreadyGeneratedCoins: BigInteger(row.alreadyGeneratedCoins),
                     alreadyGeneratedTransactions: parseInt(row.alreadyGeneratedTransactions, 10),
                     reward: parseInt(row.reward, 10),
@@ -309,7 +309,11 @@ export class BlockchainDB extends ITurtleCoind {
         if (count === 0) throw new Error('Information key not found');
 
         try {
-            return JSON.parse(rows[0].data);
+            const result: TurtleCoindInterfaces.IInfo = JSON.parse(rows[0].data);
+
+            result.startTime = new Date((result as any).startTime);
+
+            return result;
         } catch {
             throw new SyntaxError('Malformed JSON found in database');
         }
@@ -803,6 +807,8 @@ export class BlockchainDB extends ITurtleCoind {
      * @param info information object from daemon
      */
     public async saveInformation (info: TurtleCoindInterfaces.IInfo): Promise<void> {
+        (info as any).startTime = info.startTime.getTime();
+
         const value = JSON.stringify(info);
 
         const stmts: IBulkQuery[] = [];
