@@ -65,7 +65,7 @@ export class BlockchainDB extends ITurtleCoind {
      */
     public async checkConsistency (): Promise<[boolean, string[]]> {
         const [count, rows] = await this.m_db.query(
-            'SELECT blocks.hash FROM blocks ' +
+            'SELECT blocks.hash AS hash FROM blocks ' +
             'LEFT JOIN block_meta ON block_meta.hash = blocks.hash ' +
             'WHERE block_meta.size IS NULL');
 
@@ -259,22 +259,24 @@ export class BlockchainDB extends ITurtleCoind {
             .map(row => {
                 return {
                     hash: row.hash,
-                    prevHash: row.prevHash,
+                    prevHash: row.prevHash || row.prevhash,
                     height: parseInt(row.height, 10),
-                    baseReward: parseInt(row.baseReward, 10),
+                    baseReward: parseInt(row.baseReward || row.basereward, 10),
                     difficulty: parseInt(row.difficulty, 10),
-                    majorVersion: parseInt(row.majorVersion, 10),
-                    minorVersion: parseInt(row.minorVersion, 10),
+                    majorVersion: parseInt(row.majorVersion || row.majorversion, 10),
+                    minorVersion: parseInt(row.minorVersion || row.minorversion, 10),
                     nonce: parseInt(row.nonce, 10),
                     size: parseInt(row.size),
                     timestamp: new Date(parseInt(row.utctimestamp, 10) * 1000),
-                    alreadyGeneratedCoins: BigInteger(row.alreadyGeneratedCoins),
-                    alreadyGeneratedTransactions: parseInt(row.alreadyGeneratedTransactions, 10),
+                    alreadyGeneratedCoins: BigInteger(row.alreadyGeneratedCoins || row.alreadygeneratedcoins),
+                    alreadyGeneratedTransactions:
+                        parseInt(row.alreadyGeneratedTransactions || row.alreadygeneratedtransactions, 10),
                     reward: parseInt(row.reward, 10),
-                    sizeMedian: parseInt(row.sizeMedian, 10),
-                    totalFeeAmount: parseInt(row.totalFeeAmount, 10),
-                    transactionsCumulativeSize: parseInt(row.transactionsCumulativeSize, 10),
-                    transactionCount: parseInt(row.transactionsCount, 10),
+                    sizeMedian: parseInt(row.sizeMedian || row.sizemedian, 10),
+                    totalFeeAmount: parseInt(row.totalFeeAmount || row.totalfeeamount, 10),
+                    transactionsCumulativeSize:
+                        parseInt(row.transactionsCumulativeSize || row.transactionscumulativesize, 10),
+                    transactionCount: parseInt(row.transactionsCount || row.transactionscount, 10),
                     depth: topHeight - parseInt(row.height, 10),
                     orphan: (row.orphan === 1 || row.orpahn === '1'),
                     penalty: parseInt(row.penalty, 10)
@@ -716,7 +718,7 @@ export class BlockchainDB extends ITurtleCoind {
                 difficulty: parseInt(row.difficulty, 10),
                 nonce: parseInt(row.nonce, 10),
                 size: parseInt(row.nonce, 10),
-                txnCount: parseInt(row.transactionsCount, 10)
+                txnCount: parseInt(row.transactionsCount || row.transactionscount, 10)
             };
         });
     }
@@ -1213,7 +1215,7 @@ export class BlockchainDB extends ITurtleCoind {
 
             results.push({
                 hash: txn,
-                indexes: idxes.map(elem => parseInt(elem.globalIdx, 10))
+                indexes: idxes.map(elem => parseInt(elem.globalIdx || elem.globalidx, 10))
             });
         }
 
@@ -1302,8 +1304,8 @@ export class BlockchainDB extends ITurtleCoind {
                 amount: amount,
                 outputs: rows.map(row => {
                     return {
-                        index: parseInt(row.globalIdx, 10),
-                        key: row.outputKey
+                        index: parseInt(row.globalIdx || row.globalidx, 10),
+                        key: row.outputKey || row.outputkey
                     };
                 })
             };
@@ -1398,8 +1400,9 @@ export class BlockchainDB extends ITurtleCoind {
         const skip = (skipCoinbaseTransactions) ? ' AND transactionsCount > 1 ' : '';
 
         const [, rows] = await this.m_db.query(
-            'SELECT blocks.hash, data FROM blocks LEFT JOIN blockchain ON blockchain.hash = blocks.hash ' +
-            'WHERE height >= ? ' + skip + ' ORDER BY height ASC LIMIT ?', [startHeight, count]);
+            'SELECT blocks.hash AS hash, data FROM blocks LEFT JOIN blockchain ON ' +
+            'blockchain.hash = blocks.hash WHERE height >= ? ' + skip + ' ORDER BY height ASC LIMIT ?',
+            [startHeight, count]);
 
         const blocks: ILoadedRawBlock[] = rows.map(row => {
             return {
