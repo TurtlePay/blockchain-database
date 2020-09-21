@@ -39,6 +39,8 @@ export async function getDatabase (): Promise<IDatabase> {
         }
 
         database = new MySQL(host, port || 3306, user, pass, db);
+
+        database.on('error', error => Logger.error(error.toString()));
     } else if (process.env.USE_POSTGRES) {
         Logger.info('Using Postgres Backend...');
 
@@ -49,10 +51,14 @@ export async function getDatabase (): Promise<IDatabase> {
         }
 
         database = new Postgres(host, port || 5432, user, pass, db);
+
+        database.on('error', error => Logger.error(error.toString()));
     } else {
         Logger.info('Using SQLite Backend...');
 
         database = new SQLite(process.env.SQLITE_PATH || 'blockchain.sqlite3');
+
+        database.on('error', error => Logger.error(error.toString()));
     }
 
     return database;
