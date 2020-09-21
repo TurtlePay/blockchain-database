@@ -122,13 +122,13 @@ export class Collector extends EventEmitter {
 
             Logger.debug('Saved the genesis raw block to the database');
 
-            await this.database.saveBlocksMeta([genesisMeta]);
-
-            Logger.debug('Saved the genesis block header to the database');
-
             await this.database.saveOutputGlobalIndexes(indexes);
 
             Logger.debug('Saved the genesis transaction output indexes to the database');
+
+            await this.database.saveBlocksMeta([genesisMeta]);
+
+            Logger.debug('Saved the genesis block header to the database');
 
             Logger.info('Collected genesis block: %s', genesisMeta.hash);
         }
@@ -209,6 +209,14 @@ export class Collector extends EventEmitter {
 
                 Logger.debug('Saved blocks start: %s and end: %s', minHeight, maxHeight);
 
+                const indexes = await this.rpc.indexes(minHeight, maxHeight);
+
+                Logger.debug('Retrieved global indexes for %s transactions', indexes.length);
+
+                await this.database.saveOutputGlobalIndexes(indexes);
+
+                Logger.debug('Saved global indexes for %s transactions to the database', indexes.length);
+
                 /* Sure, we could go get the meta data for the blocks one at a time but lets face it
                    multiple requests in sequence for this data is just a pain to handle */
                 const promises = [];
@@ -244,14 +252,6 @@ export class Collector extends EventEmitter {
                 await this.database.saveBlocksMeta(headers);
 
                 Logger.debug('Saved %s block headers to database', headers.length);
-
-                const indexes = await this.rpc.indexes(minHeight, maxHeight);
-
-                Logger.debug('Retrieved global indexes for %s transactions', indexes.length);
-
-                await this.database.saveOutputGlobalIndexes(indexes);
-
-                Logger.debug('Saved global indexes for %s transactions to the database', indexes.length);
 
                 Logger.info('Saved %s blocks to database: %s to %s [%ss]',
                     blockHeights.length, minHeight, maxHeight, timer.elapsed.seconds.toFixed(2));
