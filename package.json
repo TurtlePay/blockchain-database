@@ -1,5 +1,5 @@
 {
-  "name": "turtlepay-blockchain-database",
+  "name": "@turtlepay/database",
   "version": "0.0.5",
   "description": "TurtlePay Blockchain Database Interface",
   "main": "dist/index.js",

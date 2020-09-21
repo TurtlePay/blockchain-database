@@ -1,8 +1,8 @@
 # TurtlePay® Blockchain Database Abstraction Layer
 
-![Version](https://img.shields.io/badge/version-0.0.1-blue.svg?cacheSeconds=2592000) ![Prerequisite](https://img.shields.io/badge/node-%3E%3D12-blue.svg) [![Documentation](https://img.shields.io/badge/documentation-yes-brightgreen.svg)](https://github.com/TurtlePay/blockchain-database#readme) [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/TurtlePay/blockchain-database/graphs/commit-activity) [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-yellow.svg)](https://github.com/TurtlePay/blockchain-database/blob/master/LICENSE) [![Twitter: TurtlePay](https://img.shields.io/twitter/follow/TurtlePay.svg?style=social)](https://twitter.com/TurtlePay)
+![Prerequisite](https://img.shields.io/badge/node-%3E%3D12-blue.svg) [![Documentation](https://img.shields.io/badge/documentation-yes-brightgreen.svg)](https://github.com/TurtlePay/blockchain-database#readme) [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/TurtlePay/blockchain-database/graphs/commit-activity) [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-yellow.svg)](https://github.com/TurtlePay/blockchain-database/blob/master/LICENSE) [![Twitter: TurtlePay](https://img.shields.io/twitter/follow/TurtlePay.svg?style=social)](https://twitter.com/TurtlePay)
 
-[![NPM](https://nodei.co/npm/turtlepay-blockchain-database.png?downloads=true&stars=true)](https://nodei.co/npm/turtlepay-blockchain-database/)
+[![NPM](https://nodeico.herokuapp.com/@turtlepay/database.svg)](https://npmjs.com/package/@turtlepay/database)
 
 #### Master Build Status
 [![Build Status](https://github.com/turtlepay/blockchain-database/workflows/CI%20Build%20Tests/badge.svg?branch=master)](https://github.com/turtlepay/blockchain-database/actions)
