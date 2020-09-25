@@ -807,22 +807,24 @@ export class BlockchainDB implements ITurtleCoind {
     public async rewind (height: number): Promise<void> {
         let stmts: IBulkQuery[] = await this.prepareRewind(height);
 
-        Logger.debug('Preparing to delete %s blocks', stmts.length);
+        if (stmts.length > 0) {
+            Logger.debug('Preparing to delete %s blocks', stmts.length);
 
-        while (stmts.length > 0) {
-            const _stmts = stmts.slice(0, 1);
+            while (stmts.length > 0) {
+                const _stmts = stmts.slice(0, 1);
 
-            stmts = stmts.slice(1);
+                stmts = stmts.slice(1);
 
-            Logger.debug('Deleting block...', _stmts.length);
+                Logger.debug('Deleting block...', _stmts.length);
 
-            try {
-                await this.m_db.transaction(_stmts);
-            } catch {
-                console.log(_stmts);
+                try {
+                    await this.m_db.transaction(_stmts);
+                } catch {
+                    console.log(_stmts);
 
-                for (const stmt of _stmts) {
-                    stmts.push(stmt);
+                    for (const stmt of _stmts) {
+                        stmts.push(stmt);
+                    }
                 }
             }
         }
