@@ -102,6 +102,7 @@
 						<section class="tsd-index-section ">
 							<h3>Accessors</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="collector.html#block_batch_size" class="tsd-kind-icon">block_<wbr>batch_<wbr>size</a></li>
 								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="collector.html#destroyed" class="tsd-kind-icon">destroyed</a></li>
 								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="collector.html#running" class="tsd-kind-icon">running</a></li>
 							</ul>
@@ -139,14 +140,14 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Collector<span class="tsd-signature-symbol">(</span>database<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">IDatabase</span>, daemonHost<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span>, daemonPort<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span>, daemonSSL<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="collector.html" class="tsd-signature-type">Collector</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Collector<span class="tsd-signature-symbol">(</span>database<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">IDatabase</span>, daemonHost<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span>, daemonPort<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span>, daemonSSL<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span>, block_batch_size<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="collector.html" class="tsd-signature-type">Collector</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<p>Overrides EventEmitter.__constructor</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/TurtlePay/blockchain-database/blob/62a8a2f/src/Collector.ts#L23">src/Collector.ts:23</a></li>
+									<li>Defined in <a href="https://github.com/TurtlePay/blockchain-database/blob/c263fc2/src/Collector.ts#L25">src/Collector.ts:25</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -185,6 +186,14 @@
 									<div class="tsd-comment tsd-typography">
 										<div class="lead">
 											<p>whether the daemon specified uses SSL/TLS</p>
+										</div>
+									</div>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> block_batch_size: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 100</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<div class="lead">
+											<p>the default block batch size to collect on each interval</p>
 										</div>
 									</div>
 								</li>
@@ -232,6 +241,28 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Accessors</h2>
 				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
+					<a name="block_batch_size" class="tsd-anchor"></a>
+					<h3>block_<wbr>batch_<wbr>size</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> block_batch_size<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/TurtlePay/blockchain-database/blob/c263fc2/src/Collector.ts#L76">src/Collector.ts:76</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Returns the current batch size of the block retrieval process</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
 					<a name="destroyed" class="tsd-anchor"></a>
 					<h3>destroyed</h3>
 					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
@@ -241,7 +272,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/TurtlePay/blockchain-database/blob/62a8a2f/src/Collector.ts#L61">src/Collector.ts:61</a></li>
+									<li>Defined in <a href="https://github.com/TurtlePay/blockchain-database/blob/c263fc2/src/Collector.ts#L69">src/Collector.ts:69</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -263,7 +294,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/TurtlePay/blockchain-database/blob/62a8a2f/src/Collector.ts#L54">src/Collector.ts:54</a></li>
+									<li>Defined in <a href="https://github.com/TurtlePay/blockchain-database/blob/c263fc2/src/Collector.ts#L62">src/Collector.ts:62</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -333,7 +364,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/TurtlePay/blockchain-database/blob/62a8a2f/src/Collector.ts#L292">src/Collector.ts:292</a></li>
+									<li>Defined in <a href="https://github.com/TurtlePay/blockchain-database/blob/c263fc2/src/Collector.ts#L351">src/Collector.ts:351</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -433,7 +464,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/TurtlePay/blockchain-database/blob/62a8a2f/src/Collector.ts#L68">src/Collector.ts:68</a></li>
+									<li>Defined in <a href="https://github.com/TurtlePay/blockchain-database/blob/c263fc2/src/Collector.ts#L83">src/Collector.ts:83</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -845,7 +876,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/TurtlePay/blockchain-database/blob/62a8a2f/src/Collector.ts#L275">src/Collector.ts:275</a></li>
+									<li>Defined in <a href="https://github.com/TurtlePay/blockchain-database/blob/c263fc2/src/Collector.ts#L334">src/Collector.ts:334</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -921,6 +952,9 @@
 								<a href="collector.html#errormonitor" class="tsd-kind-icon">error<wbr>Monitor</a>
 							</li>
 							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
+								<a href="collector.html#block_batch_size" class="tsd-kind-icon">block_<wbr>batch_<wbr>size</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
 								<a href="collector.html#destroyed" class="tsd-kind-icon">destroyed</a>
 							</li>
 							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
@@ -987,6 +1021,9 @@
 					</li>
 				</ul>
 				<ul class="after-current">
+					<li class=" tsd-kind-function">
+						<a href="../globals.html#getdatabase" class="tsd-kind-icon">get<wbr>Database</a>
+					</li>
 				</ul>
 			</nav>
 		</div>
