@@ -19,7 +19,13 @@ import { getDatabase, checkProduction } from './Common';
 
     Logger.info('Rewinding to: %s', rewindTo);
 
-    await blockchain.rewind(rewindTo);
+    try {
+        await blockchain.rewind(rewindTo);
+    } catch (e) {
+        Logger.error('Could not rewind database to %s. Please try again: %s', rewindTo, e.toString());
+
+        process.exit(1);
+    }
 
     Logger.info('Rewound database to: %s', rewindTo);
 })();
