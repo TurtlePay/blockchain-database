@@ -274,7 +274,6 @@ export class Collector extends EventEmitter {
 
                 this.increase_block_batch_size();
             } catch (e) {
-                console.log(e);
                 // If anything fails here, rewind it all
                 Logger.error('Something broke... to prevent data inconsistency we are ' +
                     'rewinding database to block %s: %s', minHeight, e.toString());
