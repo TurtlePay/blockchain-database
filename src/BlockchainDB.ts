@@ -977,7 +977,10 @@ export class BlockchainDB implements ITurtleCoind {
 
         const loadedBlocks = await Promise.all(promises);
 
-        const prepareMultiInsert = async (query: string, values: IValueArray): Promise<IBulkQuery[]> => {
+        const prepareMultiInsert = async (
+            query: string, values: IValueArray, tableName: string): Promise<IBulkQuery[]> => {
+            Logger.debug('Preparing insert statements into %s table for %s rows', tableName, values.length);
+
             const result: IBulkQuery[] = [];
 
             while (values.length > 0) {
@@ -994,50 +997,38 @@ export class BlockchainDB implements ITurtleCoind {
         };
 
         const prepareBlockInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            Logger.debug('Preparing insert statements into %s table for %s rows', 'block', values.length);
-
-            return prepareMultiInsert('INSERT INTO blocks (hash, data) VALUES %L', values);
+            return prepareMultiInsert(
+                'INSERT INTO blocks (hash, data) VALUES %L', values, 'blocks');
         };
 
         const prepareBlockchainInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            Logger.debug('Preparing insert statements into %s table for %s rows', 'blockchain', values.length);
-
-            return prepareMultiInsert('INSERT INTO blockchain (height, hash, utctimestamp) VALUES %L', values);
+            return prepareMultiInsert(
+                'INSERT INTO blockchain (height, hash, utctimestamp) VALUES %L', values, 'blockchain');
         };
 
         const prepareTransactionsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            Logger.debug('Preparing insert statements into %s table for %s rows', 'transactions', values.length);
-
             return prepareMultiInsert(
-                'INSERT INTO transactions (hash, block_hash, coinbase, data) VALUES %L', values);
+                'INSERT INTO transactions (hash, block_hash, coinbase, data) VALUES %L', values, 'transactions');
         };
 
         const prepareTransactionMetaInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            Logger.debug('Preparing insert statements into %s table for %s rows', 'transaction_meta', values.length);
-
             return prepareMultiInsert(
-                'INSERT INTO transaction_meta (hash, fee, amount, size) VALUES %L', values);
+                'INSERT INTO transaction_meta (hash, fee, amount, size) VALUES %L', values, 'transaction_meta');
         };
 
         const prepareTransactionInputsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            Logger.debug('Preparing insert statements into %s table for %s rows', 'transaction_inputs', values.length);
-
             return prepareMultiInsert(
-                'INSERT INTO transaction_inputs (hash, keyImage) VALUES %L', values);
+                'INSERT INTO transaction_inputs (hash, keyImage) VALUES %L', values, 'transaction_inputs');
         };
 
         const prepareTransactionOutputsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            Logger.debug('Preparing insert statements into %s table for %s rows', 'transaction_outputs', values.length);
-
             return prepareMultiInsert(
-                'INSERT INTO transaction_outputs (hash, idx, amount, outputKey) VALUES %L', values);
+                'INSERT INTO transaction_outputs (hash, idx, amount, outputKey) VALUES %L', values, 'transaction_outputs');
         };
 
         const prepareTransactionPaymentIDsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            Logger.debug('Preparing insert statements into %s table for %s rows', 'transaction_paymentids', values.length);
-
             return prepareMultiInsert(
-                'INSERT INTO transaction_paymentids (hash, paymentId) VALUES %L', values);
+                'INSERT INTO transaction_paymentids (hash, paymentId) VALUES %L', values, 'transaction_paymentids');
         };
 
         const combine = (a: IBulkQuery[], b: IBulkQuery[]): IBulkQuery[] => {
