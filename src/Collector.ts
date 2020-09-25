@@ -21,6 +21,8 @@ export class Collector extends EventEmitter {
     private readonly syncTimer: Metronome;
     private m_destroyed = false;
     private m_running = false;
+    private readonly m_default_block_batch_size: number = 100;
+    private m_block_batch_size = 100;
 
     /**
      * Constructs a new instance of the collector
@@ -28,12 +30,14 @@ export class Collector extends EventEmitter {
      * @param daemonHost the daemon host/ip to use for synchronization
      * @param daemonPort the daemon port to use for synchronization
      * @param daemonSSL whether the daemon specified uses SSL/TLS
+     * @param block_batch_size the default block batch size to collect on each interval
      */
     constructor (
         database: IDatabase,
         daemonHost = '127.0.0.1',
         daemonPort = 11898,
-        daemonSSL = false
+        daemonSSL = false,
+        block_batch_size = 100
     ) {
         super();
 
@@ -46,6 +50,10 @@ export class Collector extends EventEmitter {
         this.transactionPoolTimer = new Metronome(5000, true);
 
         this.syncTimer = new Metronome(5000, true);
+
+        this.m_default_block_batch_size = block_batch_size;
+
+        this.m_block_batch_size = this.m_default_block_batch_size;
     }
 
     /**
@@ -60,6 +68,13 @@ export class Collector extends EventEmitter {
      */
     public get destroyed (): boolean {
         return this.m_destroyed;
+    }
+
+    /**
+     * Returns the current batch size of the block retrieval process
+     */
+    public get block_batch_size (): number {
+        return this.m_block_batch_size;
     }
 
     /**
@@ -187,7 +202,8 @@ export class Collector extends EventEmitter {
 
             Logger.debug('Requesting raw blocks from daemon using %s checkpoints', checkpoints.length);
 
-            const syncResults = await this.rpc.rawSync(checkpoints);
+            const syncResults = await this.rpc.rawSync(
+                checkpoints, undefined, undefined, undefined, this.block_batch_size);
 
             Logger.debug('Daemon reports that we are currently %s and returned %s blocks',
                 (syncResults.synced) ? 'synced' : 'not synced',
@@ -255,6 +271,8 @@ export class Collector extends EventEmitter {
 
                 Logger.info('Saved %s blocks to database: %s to %s [%ss]',
                     blockHeights.length, minHeight, maxHeight, timer.elapsed.seconds.toFixed(2));
+
+                this.increase_block_batch_size();
             } catch (e) {
                 console.log(e);
                 // If anything fails here, rewind it all
@@ -262,11 +280,53 @@ export class Collector extends EventEmitter {
                     'rewinding database to block %s: %s', minHeight, e.toString());
 
                 await this.database.rewind(minHeight);
+
+                this.reduce_block_batch_size();
             } finally {
                 // Unpause as this iteration of the loop is done
                 this.syncTimer.paused = false;
             }
         });
+    }
+
+    /**
+     * Increases the block retrieval batch size
+     * @private
+     */
+    private increase_block_batch_size () {
+        if (this.block_batch_size === 100) {
+            return;
+        }
+
+        const old = this.block_batch_size;
+
+        this.m_block_batch_size = this.m_block_batch_size * 2;
+
+        if (this.m_block_batch_size > this.m_default_block_batch_size) {
+            this.m_block_batch_size = this.m_default_block_batch_size;
+        }
+
+        Logger.debug('Increased block retrieval batch size from %s -> %s', old, this.block_batch_size);
+    }
+
+    /**
+     * Reduces the block retrieval batch size
+     * @private
+     */
+    private reduce_block_batch_size () {
+        if (this.block_batch_size === 2) {
+            return;
+        }
+
+        const old = this.block_batch_size;
+
+        this.m_block_batch_size = Math.ceil(this.m_block_batch_size / 2);
+
+        if (this.m_block_batch_size < 2) {
+            this.m_block_batch_size = 2;
+        }
+
+        Logger.debug('Reduced block retrieval batch size from %s -> %s', old, this.block_batch_size);
     }
 
     /**
