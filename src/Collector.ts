@@ -300,7 +300,7 @@ export class Collector extends EventEmitter {
 
         const old = this.block_batch_size;
 
-        this.m_block_batch_size = this.m_block_batch_size * 2;
+        this.m_block_batch_size = Math.ceil(this.m_block_batch_size * 1.25);
 
         if (this.m_block_batch_size > this.m_default_block_batch_size) {
             this.m_block_batch_size = this.m_default_block_batch_size;
