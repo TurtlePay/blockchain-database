@@ -625,24 +625,8 @@ export class BlockchainDB implements ITurtleCoind {
             },
             { name: 'idx', type: uint64Type },
             { name: 'amount', type: uint64Type },
-            { name: 'outputKey', type: hashType }
-        ], ['hash', 'idx'], tableOptions);
-
-        addQuery();
-
-        create = prepareCreateTable(this.m_db.type, 'transaction_output_global_indexes', [
-            {
-                name: 'hash',
-                type: hashType,
-                foreign: {
-                    table: 'transactions',
-                    column: 'hash',
-                    delete: FKAction.CASCADE,
-                    update: FKAction.CASCADE
-                }
-            },
-            { name: 'idx', type: uint32Type },
-            { name: 'globalIdx', type: uint32Type }
+            { name: 'outputKey', type: hashType },
+            { name: 'globalIdx', type: uint32Type, nullable: true }
         ], ['hash', 'idx'], tableOptions);
 
         addQuery();
@@ -1147,34 +1131,22 @@ export class BlockchainDB implements ITurtleCoind {
             return;
         }
 
-        let l_indexes: IValueArray = [];
+        Logger.debug('Preparing transaction_outputs update statements for global indexes...');
+
+        const stmts: IBulkQuery[] = [];
 
         for (const tx of indexes) {
             for (let i = 0; i < tx.indexes.length; i++) {
                 const globalIdx = tx.indexes[i];
 
-                l_indexes.push([tx.hash, i, globalIdx]);
+                stmts.push({
+                    query: 'UPDATE transaction_outputs SET globalIdx = ? WHERE hash = ? AND idx = ?',
+                    values: [globalIdx, tx.hash, i]
+                });
             }
         }
 
-        const stmts: IBulkQuery[] = [];
-
-        if (l_indexes.length > 0) {
-            Logger.debug('Preparing transaction_output_global_indexes insert statement for %s rows', l_indexes.length);
-
-            while (l_indexes.length > 0) {
-                const records = l_indexes.slice(0, 25);
-
-                l_indexes = l_indexes.slice(25);
-
-                const query = this.m_db.prepareMultiInsert(
-                    'INSERT INTO transaction_output_global_indexes (hash, idx, globalIdx) VALUES %L', records);
-
-                stmts.push({ query });
-            }
-        }
-
-        Logger.debug('Inserting values into transaction_output_global_indexes...');
+        Logger.debug('Executing %s transaction_outputs update statements', stmts.length);
 
         await this.m_db.transaction(stmts);
     }
@@ -1302,7 +1274,7 @@ export class BlockchainDB implements ITurtleCoind {
 
         for (const txn of txns) {
             const [, idxes] = await this.m_db.query(
-                'SELECT globalIdx FROM transaction_output_global_indexes WHERE hash = ? ORDER BY idx', [txn]);
+                'SELECT globalIdx FROM transaction_outputs WHERE hash = ? ORDER BY idx', [txn]);
 
             results.push({
                 hash: txn,
@@ -1347,7 +1319,7 @@ export class BlockchainDB implements ITurtleCoind {
     public async randomIndexes (amounts: number[], count: number): Promise<TurtleCoindInterfaces.IRandomOutput[]> {
         const maxGlobalIdx = async (amount: number): Promise<number> => {
             const [count, rows] = await this.m_db.query(
-                'SELECT MAX(globalIdx) AS maximum FROM transaction_output_global_indexes WHERE amount = ?',
+                'SELECT MAX(globalIdx) AS maximum FROM transaction_outputs WHERE amount = ?',
                 [amount]);
 
             if (count === 0) throw new Error('Amount not found in database');
@@ -1371,9 +1343,6 @@ export class BlockchainDB implements ITurtleCoind {
 
             const [count, rows] = await this.m_db.query(
                 'SELECT globalIdx, outputKey FROM transaction_outputs ' +
-                'LEFT JOIN transaction_output_global_indexes ' +
-                'ON (transaction_output_global_indexes.hash = transaction_outputs.hash ' +
-                'AND transaction_output_global_indexes.idx = transaction_outputs.idx) ' +
                 'WHERE amount = ? AND (' + clauses.join(' OR ') + ')',
                 [amount]);
 
