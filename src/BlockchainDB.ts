@@ -1151,7 +1151,7 @@ export class BlockchainDB implements ITurtleCoind {
 
         const prepareMultiUpdate = async (
             table: string, primaryKey: string[], columns: string[], values: IValueArray): Promise<IBulkQuery[]> => {
-            Logger.debug('Preparing update statements for %s for %s rows', table, values.length);
+            Logger.debug('Preparing update statements for %s for %s outputs', table, values.length);
 
             const result: IBulkQuery[] = [];
 
