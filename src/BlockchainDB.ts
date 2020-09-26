@@ -844,9 +844,9 @@ export class BlockchainDB implements ITurtleCoind {
             return;
         }
 
-        let l_headers: IValueArray = [];
-
         const stmts: IBulkQuery[] = [];
+
+        const l_headers: IValueArray = [];
 
         const l_hashes: string[] = [];
 
@@ -884,22 +884,19 @@ export class BlockchainDB implements ITurtleCoind {
             l_hashes.push(header.hash);
         }
 
-        while (l_headers.length > 0) {
-            const records = l_headers.slice(0, 25);
+        const _stmts = await prepareMultiInsert(this.m_db, 'block_meta', [
+            'hash', 'prevHash', 'baseReward', 'difficulty', 'majorVersion', 'minorVersion',
+            'nonce', 'size', 'alreadyGeneratedCoins', 'alreadyGeneratedTransactions', 'reward',
+            'sizeMedian', 'totalFeeAmount', 'transactionsCumulativeSize', 'transactionsCount',
+            'orphan', 'penalty'
+        ], l_headers);
 
-            l_headers = l_headers.slice(25);
+        Logger.debug('Executing database transaction to insert %s rows with %s statements',
+            l_hashes.length, _stmts.length);
 
-            const query = this.m_db.prepareMultiInsert('block_meta', [
-                'hash', 'prevHash', 'baseReward', 'difficulty', 'majorVersion', 'minorVersion',
-                'nonce', 'size', 'alreadyGeneratedCoins', 'alreadyGeneratedTransactions', 'reward',
-                'sizeMedian', 'totalFeeAmount', 'transactionsCumulativeSize', 'transactionsCount',
-                'orphan', 'penalty'
-            ], records);
+        await this.m_db.transaction(stmts.concat(_stmts));
 
-            stmts.push({ query });
-        }
-
-        return this.m_db.transaction(stmts);
+        Logger.debug('Database transaction execution completed');
     }
 
     /**
@@ -986,51 +983,32 @@ export class BlockchainDB implements ITurtleCoind {
 
         const loadedBlocks = await Promise.all(promises);
 
-        const prepareMultiInsert = async (
-            table: string, columns: string[], values: IValueArray): Promise<IBulkQuery[]> => {
-            Logger.debug('Preparing insert statements into %s table for %s rows', table, values.length);
-
-            const result: IBulkQuery[] = [];
-
-            while (values.length > 0) {
-                const records = values.slice(0, 25);
-
-                values = values.slice(25);
-
-                const stmt = this.m_db.prepareMultiInsert(table, columns, records);
-
-                result.push({ query: stmt });
-            }
-
-            return result;
-        };
-
         const prepareBlockInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert('blocks', ['hash', 'data'], values);
+            return prepareMultiInsert(this.m_db, 'blocks', ['hash', 'data'], values);
         };
 
         const prepareBlockchainInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert('blockchain', ['height', 'hash', 'utctimestamp'], values);
+            return prepareMultiInsert(this.m_db, 'blockchain', ['height', 'hash', 'utctimestamp'], values);
         };
 
         const prepareTransactionsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert('transactions', ['hash', 'block_hash', 'coinbase', 'data'], values);
+            return prepareMultiInsert(this.m_db, 'transactions', ['hash', 'block_hash', 'coinbase', 'data'], values);
         };
 
         const prepareTransactionMetaInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert('transaction_meta', ['hash', 'fee', 'amount', 'size'], values);
+            return prepareMultiInsert(this.m_db, 'transaction_meta', ['hash', 'fee', 'amount', 'size'], values);
         };
 
         const prepareTransactionInputsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert('transaction_inputs', ['hash', 'keyImage'], values);
+            return prepareMultiInsert(this.m_db, 'transaction_inputs', ['hash', 'keyImage'], values);
         };
 
         const prepareTransactionOutputsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert('transaction_outputs', ['hash', 'idx', 'amount', 'outputKey'], values);
+            return prepareMultiInsert(this.m_db, 'transaction_outputs', ['hash', 'idx', 'amount', 'outputKey'], values);
         };
 
         const prepareTransactionPaymentIDsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert('transaction_paymentids', ['hash', 'paymentId'], values);
+            return prepareMultiInsert(this.m_db, 'transaction_paymentids', ['hash', 'paymentId'], values);
         };
 
         const combine = (a: IBulkQuery[], b: IBulkQuery[]): IBulkQuery[] => {
@@ -1857,4 +1835,28 @@ export class BlockchainDB implements ITurtleCoind {
 /** @ignore */
 function UNUSED (val: any): any {
     return val || '';
+}
+
+/** @ignore */
+async function prepareMultiInsert (
+    database: IDatabase,
+    table: string,
+    columns: string[],
+    values: IValueArray
+): Promise<IBulkQuery[]> {
+    Logger.debug('Preparing insert statements into %s table for %s rows', table, values.length);
+
+    const result: IBulkQuery[] = [];
+
+    while (values.length > 0) {
+        const records = values.slice(0, 25);
+
+        values = values.slice(25);
+
+        const stmt = database.prepareMultiInsert(table, columns, records);
+
+        result.push({ query: stmt });
+    }
+
+    return result;
 }
