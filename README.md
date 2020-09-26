@@ -58,7 +58,7 @@ Full library documentation is available at [https://database.turtlepay.io](https
 ## Install
 
 ```sh
-yarn install turtlepay-blockchain-database
+yarn install @turtlepay/database
 ```
 
 ## Usage
