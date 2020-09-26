@@ -17,6 +17,7 @@
     "start": "node ./dist/launch.js",
     "rewind": "node ./dist/rewind.js",
     "reset": "node ./dist/reset.js",
+    "checkdb": "node ./dist/check.js",
     "prepublishOnly": "yarn build"
   },
   "repository": {
