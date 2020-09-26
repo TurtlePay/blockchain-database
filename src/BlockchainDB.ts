@@ -868,8 +868,12 @@ export class BlockchainDB implements ITurtleCoind {
 
             l_headers = l_headers.slice(25);
 
-            const query = this.m_db.prepareMultiInsert(
-                'INSERT INTO block_meta VALUES %L', records);
+            const query = this.m_db.prepareMultiInsert('block_meta', [
+                'hash', 'prevHash', 'baseReward', 'difficulty', 'majorVersion', 'minorVersion',
+                'nonce', 'size', 'alreadyGeneratedCoins', 'alreadyGeneratedTransactions', 'reward',
+                'sizeMedian', 'totalFeeAmount', 'transactionsCumulativeSize', 'transactionsCount',
+                'orphan', 'penalty'
+            ], records);
 
             stmts.push({ query });
         }
@@ -962,8 +966,8 @@ export class BlockchainDB implements ITurtleCoind {
         const loadedBlocks = await Promise.all(promises);
 
         const prepareMultiInsert = async (
-            query: string, values: IValueArray, tableName: string): Promise<IBulkQuery[]> => {
-            Logger.debug('Preparing insert statements into %s table for %s rows', tableName, values.length);
+            table: string, columns: string[], values: IValueArray): Promise<IBulkQuery[]> => {
+            Logger.debug('Preparing insert statements into %s table for %s rows', table, values.length);
 
             const result: IBulkQuery[] = [];
 
@@ -972,7 +976,7 @@ export class BlockchainDB implements ITurtleCoind {
 
                 values = values.slice(25);
 
-                const stmt = this.m_db.prepareMultiInsert(query, records);
+                const stmt = this.m_db.prepareMultiInsert(table, columns, records);
 
                 result.push({ query: stmt });
             }
@@ -981,38 +985,31 @@ export class BlockchainDB implements ITurtleCoind {
         };
 
         const prepareBlockInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert(
-                'INSERT INTO blocks (hash, data) VALUES %L', values, 'blocks');
+            return prepareMultiInsert('blocks', ['hash', 'data'], values);
         };
 
         const prepareBlockchainInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert(
-                'INSERT INTO blockchain (height, hash, utctimestamp) VALUES %L', values, 'blockchain');
+            return prepareMultiInsert('blockchain', ['height', 'hash', 'utctimestamp'], values);
         };
 
         const prepareTransactionsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert(
-                'INSERT INTO transactions (hash, block_hash, coinbase, data) VALUES %L', values, 'transactions');
+            return prepareMultiInsert('transactions', ['hash', 'block_hash', 'coinbase', 'data'], values);
         };
 
         const prepareTransactionMetaInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert(
-                'INSERT INTO transaction_meta (hash, fee, amount, size) VALUES %L', values, 'transaction_meta');
+            return prepareMultiInsert('transaction_meta', ['hash', 'fee', 'amount', 'size'], values);
         };
 
         const prepareTransactionInputsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert(
-                'INSERT INTO transaction_inputs (hash, keyImage) VALUES %L', values, 'transaction_inputs');
+            return prepareMultiInsert('transaction_inputs', ['hash', 'keyImage'], values);
         };
 
         const prepareTransactionOutputsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert(
-                'INSERT INTO transaction_outputs (hash, idx, amount, outputKey) VALUES %L', values, 'transaction_outputs');
+            return prepareMultiInsert('transaction_outputs', ['hash', 'idx', 'amount', 'outputKey'], values);
         };
 
         const prepareTransactionPaymentIDsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert(
-                'INSERT INTO transaction_paymentids (hash, paymentId) VALUES %L', values, 'transaction_paymentids');
+            return prepareMultiInsert('transaction_paymentids', ['hash', 'paymentId'], values);
         };
 
         const combine = (a: IBulkQuery[], b: IBulkQuery[]): IBulkQuery[] => {

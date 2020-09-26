@@ -650,10 +650,10 @@ dashdash@^1.12.0:
   dependencies:
     assert-plus "^1.0.0"
 
-db-abstraction@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/db-abstraction/-/db-abstraction-1.0.0.tgz#5fc3d76095387dbda21c3e64b53f107716a6142d"
-  integrity sha512-XNfwURNUSRAr6yID1ofWYzfCtCvgId/OyquhVrvqbYZpTSemOEm9t47RbId00JVoA+UpvbJVHIdPG896sB6dNg==
+db-abstraction@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/db-abstraction/-/db-abstraction-1.0.1.tgz#8a1acdfb9b92e837c0bcddcbba4b555af38215fb"
+  integrity sha512-7sz8cBCHDKeHdPXnaM+hojPF9EBgq+YXm+YurqQD+pTNi7nOAYUjrH64IIlEBtlelbBjVG9L4Bn2DbmM47LIzw==
   dependencies:
     "@types/mysql" "^2.15.15"
     "@types/pg" "^7.14.5"

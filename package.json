@@ -37,7 +37,7 @@
   "homepage": "https://github.com/turtlepay/blockchain-database#readme",
   "dependencies": {
     "big-integer": "^1.6.48",
-    "db-abstraction": "^1.0.0",
+    "db-abstraction": "^1.0.1",
     "dotenv": "^8.2.0",
     "node-metronome": "0.0.12",
     "turtlecoin-utils": "^3.0.4",
