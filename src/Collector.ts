@@ -121,31 +121,37 @@ export class Collector extends EventEmitter {
         Logger.info('Database consistency verified!');
 
         if (!await this.database.haveGenesis()) {
-            const genesis = await this.rpc.rawBlock(0);
+            try {
+                const genesis = await this.rpc.rawBlock(0);
 
-            Logger.debug('Collected genesis block from daemon');
+                Logger.debug('Collected genesis block from daemon');
 
-            const genesisMeta = await this.rpc.block(0);
+                const genesisMeta = await this.rpc.block(0);
 
-            Logger.debug('Collected genesis block header from daemon');
+                Logger.debug('Collected genesis block header from daemon');
 
-            const indexes = await this.rpc.indexes(0, 0);
+                const indexes = await this.rpc.indexes(0, 0);
 
-            Logger.debug('Collected genesis transaction output indexes from daemon');
+                Logger.debug('Collected genesis transaction output indexes from daemon');
 
-            await this.database.saveRawBlocks([genesis]);
+                await this.database.saveRawBlocks([genesis]);
 
-            Logger.debug('Saved the genesis raw block to the database');
+                Logger.debug('Saved the genesis raw block to the database');
 
-            await this.database.saveOutputGlobalIndexes(indexes);
+                await this.database.saveOutputGlobalIndexes(indexes);
 
-            Logger.debug('Saved the genesis transaction output indexes to the database');
+                Logger.debug('Saved the genesis transaction output indexes to the database');
 
-            await this.database.saveBlocksMeta([genesisMeta]);
+                await this.database.saveBlocksMeta([genesisMeta]);
 
-            Logger.debug('Saved the genesis block header to the database');
+                Logger.debug('Saved the genesis block header to the database');
 
-            Logger.info('Collected genesis block: %s', genesisMeta.hash);
+                Logger.info('Collected genesis block: %s', genesisMeta.hash);
+            } catch (e) {
+                Logger.error('Could not collect genesis block: %s', e.toString());
+
+                process.exit(1);
+            }
         }
 
         this.informationTimer.on('tick', async () => {
