@@ -388,6 +388,27 @@ export class BlockchainDB implements ITurtleCoind {
     }
 
     /**
+     * Retrieves the current output values for the provided transaction hash and index location
+     * @param hash the transaction hash
+     * @private
+     */
+    private async getTransactionOutputs (hash: string): Promise<{amount: number, outputKey: string}[]> {
+        const [count, rows] = await this.m_db.query(
+            'SELECT amount, outputKey FROM transaction_outputs WHERE hash = ? ORDER BY idx ASC', [hash]);
+
+        if (count === 0) {
+            throw new Error('Could not find transaction output');
+        }
+
+        return rows.map(row => {
+            return {
+                amount: parseInt(row.amount, 10),
+                outputKey: row.outputKey || row.outputkey
+            };
+        });
+    }
+
+    /**
      * Retrieves the number of user transactions in the database
      * @private
      */
@@ -1128,22 +1149,47 @@ export class BlockchainDB implements ITurtleCoind {
             return;
         }
 
+        const prepareMultiUpdate = async (
+            table: string, primaryKey: string[], columns: string[], values: IValueArray): Promise<IBulkQuery[]> => {
+            Logger.debug('Preparing update statements for %s for %s rows', table, values.length);
+
+            const result: IBulkQuery[] = [];
+
+            while (values.length > 0) {
+                const records = values.slice(0, 25);
+
+                values = values.slice(25);
+
+                const stmt = this.m_db.prepareMultiUpdate(table, primaryKey, columns, records);
+
+                result.push({ query: stmt });
+            }
+
+            return result;
+        };
+
         Logger.debug('Preparing transaction_outputs update statements for global indexes...');
 
-        const stmts: IBulkQuery[] = [];
+        const l_indexes: IValueArray = [];
 
         for (const tx of indexes) {
+            const currentValues = await this.getTransactionOutputs(tx.hash);
+
             for (let i = 0; i < tx.indexes.length; i++) {
                 const globalIdx = tx.indexes[i];
 
-                stmts.push({
-                    query: 'UPDATE transaction_outputs SET globalIdx = ? WHERE hash = ? AND idx = ?',
-                    values: [globalIdx, tx.hash, i]
-                });
+                const current = currentValues[i];
+
+                l_indexes.push([tx.hash, i, globalIdx, current.amount, current.outputKey]);
             }
         }
 
-        Logger.debug('Executing %s transaction_outputs update statements', stmts.length);
+        Logger.debug('Prepared transaction_outputs update statements for %s transactions', indexes.length);
+
+        const stmts = await prepareMultiUpdate(
+            'transaction_outputs', ['hash', 'idx'], ['globalIdx', 'amount', 'outputKey'], l_indexes);
+
+        Logger.debug('Updating %s transaction_outputs using %s statements...', l_indexes.length, stmts.length);
 
         await this.m_db.transaction(stmts);
     }
