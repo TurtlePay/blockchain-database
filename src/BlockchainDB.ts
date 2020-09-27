@@ -15,6 +15,8 @@ import {
 import { format } from 'util';
 import { Logger } from './Logger';
 import * as BigInteger from 'big-integer';
+import { PerformanceTimer } from './PerformanceTimer';
+import { ILoadedBlock, loadRawBlock, processBlock } from './BlockLoader';
 
 /** @ignore */
 require('dotenv').config();
@@ -33,11 +35,6 @@ import CoinbaseInput = TransactionInputs.CoinbaseInput;
 import InputType = TransactionInputs.InputType;
 /** @ignore */
 import OutputType = TransactionOutputs.OutputType;
-
-/** @ignore */
-export interface ILoadedBlock extends Block {
-    txns?: Transaction[];
-}
 
 /** @ignore */
 export interface ILoadedRawBlock extends TurtleCoindInterfaces.IRawBlock {
@@ -703,38 +700,6 @@ export class BlockchainDB implements ITurtleCoind {
     }
 
     /**
-     * Loads a RawBlock as structured objects for later use
-     * @param rawBlock the raw block to load
-     * @private
-     */
-    private static async loadRawBlock (rawBlock: TurtleCoindInterfaces.IRawBlock): Promise<ILoadedBlock> {
-        const block: ILoadedBlock = await Block.from(rawBlock.blob);
-
-        // calculate the hash so it becomes cached
-        await block.hash();
-
-        Logger.debug('Block %s decoded successfully', await block.hash());
-
-        // calculate the hash so it becomes cached
-        await block.minerTransaction.hash();
-
-        block.txns = [block.minerTransaction];
-
-        for (const tx of rawBlock.transactions) {
-            const txn = await Transaction.from(tx);
-
-            Logger.debug('Transaction %s decoded successfully', await txn.hash());
-
-            // calculate the hash so it becomes cached
-            await txn.hash();
-
-            block.txns.push(txn);
-        }
-
-        return block;
-    }
-
-    /**
      * Prepares all delete statements in support of rewinding the database
      * @param height the height to start from for rewiding the database
      * @private
@@ -813,7 +778,7 @@ export class BlockchainDB implements ITurtleCoind {
         let stmts: IBulkQuery[] = await this.prepareRewind(height);
 
         if (stmts.length > 0) {
-            Logger.debug('Preparing to delete %s blocks', stmts.length);
+            Logger.debug('Preparing to delete %s blocks...', stmts.length);
 
             while (stmts.length > 0) {
                 const _stmts = stmts.slice(0, 1);
@@ -891,12 +856,15 @@ export class BlockchainDB implements ITurtleCoind {
             'orphan', 'penalty'
         ], l_headers);
 
-        Logger.debug('Executing database transaction to insert %s rows with %s statements',
+        Logger.debug('Executing database transaction to insert %s rows with %s statements...',
             l_hashes.length, _stmts.length);
+
+        const timer = new PerformanceTimer();
 
         await this.m_db.transaction(stmts.concat(_stmts));
 
-        Logger.debug('Database transaction execution completed');
+        Logger.debug('Database transaction execution completed in %s seconds',
+            timer.elapsed.seconds.toFixed(2));
     }
 
     /**
@@ -978,7 +946,7 @@ export class BlockchainDB implements ITurtleCoind {
         const promises: Promise<ILoadedBlock>[] = [];
 
         for (const block of blocks) {
-            promises.push(BlockchainDB.loadRawBlock(block));
+            promises.push(loadRawBlock(block));
         }
 
         const loadedBlocks = await Promise.all(promises);
@@ -1015,40 +983,28 @@ export class BlockchainDB implements ITurtleCoind {
             return a.concat(b);
         };
 
+        Logger.debug('Applying DTS logic...');
+
         for (const block of loadedBlocks) {
-            l_heights.push(block.height);
+            const result = await processBlock(block);
 
-            l_hashes.push(await block.hash());
+            l_heights.push(result.height);
 
-            l_blocks.push([await block.hash(), block.toString()]);
+            l_hashes.push(result.hash);
 
-            l_blockchain.push([block.height, await block.hash(), block.timestamp.getTime() / 1000]);
+            result.blocks.map(elem => l_blocks.push(elem));
 
-            if (block.txns) {
-                for (const tx of block.txns) {
-                    l_transactions.push([await tx.hash(), await block.hash(), (tx.isCoinbase) ? 1 : 0, tx.toString()]);
+            result.blockchain.map(elem => l_blockchain.push(elem));
 
-                    l_transaction_meta.push([await tx.hash(), tx.fee, tx.amount, tx.size]);
+            result.transactions.map(elem => l_transactions.push(elem));
 
-                    for (const input of tx.inputs) {
-                        if (input.type === TransactionInputs.InputType.KEY) {
-                            l_inputs.push([await tx.hash(), (input as TransactionInputs.KeyInput).keyImage]);
-                        }
-                    }
+            result.transaction_meta.map(elem => l_transaction_meta.push(elem));
 
-                    for (let i = 0; i < tx.outputs.length; i++) {
-                        const output = (tx.outputs[i] as TransactionOutputs.KeyOutput);
+            result.inputs.map(elem => l_inputs.push(elem));
 
-                        if (output.type === TransactionOutputs.OutputType.KEY) {
-                            l_outputs.push([await tx.hash(), i, output.amount.toJSNumber(), output.key]);
-                        }
-                    }
+            result.outputs.map(elem => l_outputs.push(elem));
 
-                    if (tx.paymentId) {
-                        l_paymentIds.push([await tx.hash(), tx.paymentId]);
-                    }
-                }
-            }
+            result.paymentIds.map(elem => l_paymentIds.push(elem));
         }
 
         let stmts: IBulkQuery[] = [];
@@ -1085,12 +1041,15 @@ export class BlockchainDB implements ITurtleCoind {
         // Prepare the transaction payment IDs insert statement(s)
         stmts = combine(stmts, await prepareTransactionPaymentIDsInsert(l_paymentIds));
 
-        Logger.debug('Executing database transaction to insert %s rows with %s statements',
+        Logger.debug('Executing database transaction to insert %s rows with %s statements...',
             rows, stmts.length);
+
+        const timer = new PerformanceTimer();
 
         await this.m_db.transaction(stmts);
 
-        Logger.debug('Database transaction execution completed');
+        Logger.debug('Database transaction execution completed in %s seconds',
+            timer.elapsed.seconds.toFixed(2));
 
         return [l_heights.sort((a, b) => a - b), l_hashes];
     }
@@ -1129,7 +1088,7 @@ export class BlockchainDB implements ITurtleCoind {
 
         const prepareMultiUpdate = async (
             table: string, primaryKey: string[], columns: string[], values: IValueArray): Promise<IBulkQuery[]> => {
-            Logger.debug('Preparing update statements for %s for %s outputs', table, values.length);
+            Logger.debug('Preparing update statements for %s for %s outputs...', table, values.length);
 
             const result: IBulkQuery[] = [];
 
@@ -1150,6 +1109,8 @@ export class BlockchainDB implements ITurtleCoind {
 
         const l_indexes: IValueArray = [];
 
+        const timer = new PerformanceTimer();
+
         for (const tx of indexes) {
             const currentValues = await this.getTransactionOutputs(tx.hash);
 
@@ -1162,14 +1123,22 @@ export class BlockchainDB implements ITurtleCoind {
             }
         }
 
-        Logger.debug('Prepared transaction_outputs update statements for %s transactions', indexes.length);
+        Logger.debug('Prepared transaction_outputs ' +
+            'for %s transactions in %s seconds', indexes.length, timer.elapsed.seconds.toFixed(2));
 
         const stmts = await prepareMultiUpdate(
-            'transaction_outputs', ['hash', 'idx'], ['globalIdx', 'amount', 'outputKey'], l_indexes);
+            'transaction_outputs',
+            ['hash', 'idx'],
+            ['globalIdx', 'amount', 'outputKey'],
+            l_indexes);
 
-        Logger.debug('Updating %s transaction_outputs using %s statements...', l_indexes.length, stmts.length);
+        Logger.debug('Updating %s transaction_outputs using %s statements...',
+            l_indexes.length, stmts.length);
 
         await this.m_db.transaction(stmts);
+
+        Logger.debug('Database transaction execution completed in %s seconds',
+            timer.elapsed.seconds.toFixed(2));
     }
 
     /**
@@ -1844,7 +1813,7 @@ async function prepareMultiInsert (
     columns: string[],
     values: IValueArray
 ): Promise<IBulkQuery[]> {
-    Logger.debug('Preparing insert statements into %s table for %s rows', table, values.length);
+    Logger.debug('Preparing insert statements into %s table for %s rows...', table, values.length);
 
     const result: IBulkQuery[] = [];
 
