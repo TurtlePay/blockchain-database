@@ -37,6 +37,7 @@
   },
   "homepage": "https://github.com/turtlepay/blockchain-database#readme",
   "dependencies": {
+    "@turtlepay/rabbitmq": "^0.0.2",
     "big-integer": "^1.6.48",
     "db-abstraction": "^1.0.1",
     "dotenv": "^8.2.0",
