@@ -17,6 +17,7 @@ import { Logger } from './Logger';
 import * as BigInteger from 'big-integer';
 import { PerformanceTimer } from './PerformanceTimer';
 import { ILoadedBlock, loadRawBlock, processBlock } from './BlockLoader';
+import { prepareMultiInsert } from './Statements';
 
 /** @ignore */
 require('dotenv').config();
@@ -1804,28 +1805,4 @@ export class BlockchainDB implements ITurtleCoind {
 /** @ignore */
 function UNUSED (val: any): any {
     return val || '';
-}
-
-/** @ignore */
-async function prepareMultiInsert (
-    database: IDatabase,
-    table: string,
-    columns: string[],
-    values: IValueArray
-): Promise<IBulkQuery[]> {
-    Logger.debug('Preparing insert statements into %s table for %s rows...', table, values.length);
-
-    const result: IBulkQuery[] = [];
-
-    while (values.length > 0) {
-        const records = values.slice(0, 25);
-
-        values = values.slice(25);
-
-        const stmt = database.prepareMultiInsert(table, columns, records);
-
-        result.push({ query: stmt });
-    }
-
-    return result;
 }
