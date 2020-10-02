@@ -2,9 +2,12 @@
 //
 // Please see the included LICENSE file for more information.
 
-import { ProcessedBlock } from './BlockLoader';
+import { loadRawBlock, processBlock, ProcessedBlock } from './BlockLoader';
 import { IDatabase, Interfaces } from 'db-abstraction';
 import { Logger } from './Logger';
+import { TurtleCoindTypes as TurtleCoindInterfaces } from 'turtlecoin-utils';
+import { PerformanceTimer } from './PerformanceTimer';
+import { SaveRawBlockResponse } from './Worker';
 import IBulkQuery = Interfaces.IBulkQuery;
 import IValueArray = Interfaces.IValueArray;
 
@@ -72,4 +75,30 @@ export async function prepareMultiInsert (
     }
 
     return result;
+}
+
+/** @ignore */
+export async function saveRawBlock (
+    database: IDatabase,
+    rawBlock: TurtleCoindInterfaces.IRawBlock
+): Promise<SaveRawBlockResponse> {
+    const block = await loadRawBlock(rawBlock);
+
+    const processedBlock = await processBlock(block);
+
+    const stmts = await prepareProcessedBlockStatements(database, processedBlock);
+
+    Logger.debug('Executing database transaction of %s statements...', stmts.length);
+
+    const timer = new PerformanceTimer();
+
+    await database.transaction(stmts);
+
+    Logger.debug('Database transaction execution completed in %s seconds',
+        timer.elapsed.seconds.toFixed(2));
+
+    return {
+        height: processedBlock.height,
+        hash: processedBlock.hash
+    };
 }

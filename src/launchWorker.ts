@@ -13,7 +13,9 @@ import { getDatabase, checkProduction } from './Common';
 
     Logger.info('Starting raw block processor...');
 
-    await RawBlockWorker.init(database, 'rawblock-processor');
+    const worker = await RawBlockWorker.init(database, 'rawblock-processor');
+
+    await worker.start();
 
     Logger.info('Waiting for requests...');
 })();

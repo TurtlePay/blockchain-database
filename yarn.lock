@@ -122,10 +122,10 @@
     "@nodelib/fs.scandir" "2.1.3"
     fastq "^1.6.0"
 
-"@turtlepay/rabbitmq@^0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@turtlepay/rabbitmq/-/rabbitmq-0.0.2.tgz#9c47042fc9308901c6eb7d806a40a1d7f8254500"
-  integrity sha512-feD89w1RfUUQ/eyPqBB9c2WFqFD6Ba93vH3rD+zXN4Ic7LVo5aSnpdo1CMMGFIFCkNp6PB/1PTKIFiIrgD4WiQ==
+"@turtlepay/rabbitmq@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@turtlepay/rabbitmq/-/rabbitmq-0.0.3.tgz#7dc5f269f66787bef48bbe308e2eeb282f71fa68"
+  integrity sha512-93rkYKW9VUavyBG/jpZTCTaNpNFLqSzxUJoijxGdMhG7TGTL7BV2R3X0imxtw64yK4St3tmGX7p6Qu3g76Yiiw==
   dependencies:
     "@types/amqplib" "^0.5.13"
     "@types/uuid" "^8.3.0"

@@ -16,8 +16,8 @@ import { format } from 'util';
 import { Logger } from './Logger';
 import * as BigInteger from 'big-integer';
 import { PerformanceTimer } from './PerformanceTimer';
-import { ILoadedBlock, loadRawBlock, processBlock } from './BlockLoader';
-import { prepareMultiInsert } from './Statements';
+import { prepareMultiInsert, saveRawBlock } from './Statements';
+import { RawBlockWorker, SaveRawBlockResponse } from './Worker';
 
 /** @ignore */
 require('dotenv').config();
@@ -47,6 +47,8 @@ export interface ILoadedRawBlock extends TurtleCoindInterfaces.IRawBlock {
  */
 export class BlockchainDB implements ITurtleCoind {
     private readonly m_db: IDatabase;
+    private readonly m_worker: RawBlockWorker;
+    private m_useWorkers = false;
 
     /**
      * Database cache constructor
@@ -54,6 +56,25 @@ export class BlockchainDB implements ITurtleCoind {
      */
     constructor (database: IDatabase) {
         this.m_db = database;
+
+        this.m_worker = new RawBlockWorker(database, 'rawblock-processor');
+
+        this.m_worker.init()
+            .then(() => {
+                this.m_useWorkers = true;
+
+                Logger.info('Connected to RabbitMQ for remote block processing.');
+            })
+            .catch(() => {
+                Logger.warn('Could not connect to RabbitMQ. Using local block processor.');
+            });
+    }
+
+    /**
+     * Whether we are using RabbitMQ based workers
+     */
+    public get useWorkers (): boolean {
+        return this.m_useWorkers;
     }
 
     /**
@@ -151,7 +172,7 @@ export class BlockchainDB implements ITurtleCoind {
     }
 
     /**
-     * Retrives all transaction meta information for the given block
+     * Retrieves all transaction meta information for the given block
      * @param hash the transaction hash
      * @private
      */
@@ -924,133 +945,32 @@ export class BlockchainDB implements ITurtleCoind {
 
         if (blocks.length === 0) return [l_heights, l_hashes];
 
-        const l_blockchain: IValueArray = [];
-        const l_blocks: IValueArray = [];
-        const l_transactions: IValueArray = [];
-        const l_inputs: IValueArray = [];
-        const l_outputs: IValueArray = [];
-        const l_paymentIds: IValueArray = [];
-        const l_transaction_meta: IValueArray = [];
+        const timer = new PerformanceTimer();
 
-        const rewind = async (): Promise<void> => {
-            if (l_heights.length > 0) {
-                const startHeight = l_heights.sort()[0];
+        const promises: Promise<SaveRawBlockResponse>[] = [];
 
-                Logger.debug('Rewinding database to block %s to keep consistency', startHeight);
-
-                await this.rewind(startHeight);
-
-                Logger.debug('Database rewound to block %s', startHeight);
-            }
-        };
-
-        const promises: Promise<ILoadedBlock>[] = [];
-
-        for (const block of blocks) {
-            promises.push(loadRawBlock(block));
+        if (this.useWorkers) {
+            Logger.info('Sending Blocks to remote workers for processing');
         }
 
-        const loadedBlocks = await Promise.all(promises);
+        for (const block of blocks) {
+            if (this.useWorkers) {
+                promises.push(this.m_worker.saveRawBlock(block));
+            } else {
+                promises.push(saveRawBlock(this.m_db, block));
+            }
+        }
 
-        const prepareBlockInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert(this.m_db, 'blocks', ['hash', 'data'], values);
-        };
+        const results = await Promise.all(promises);
 
-        const prepareBlockchainInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert(this.m_db, 'blockchain', ['height', 'hash', 'utctimestamp'], values);
-        };
-
-        const prepareTransactionsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert(this.m_db, 'transactions', ['hash', 'block_hash', 'coinbase', 'data'], values);
-        };
-
-        const prepareTransactionMetaInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert(this.m_db, 'transaction_meta', ['hash', 'fee', 'amount', 'size'], values);
-        };
-
-        const prepareTransactionInputsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert(this.m_db, 'transaction_inputs', ['hash', 'keyImage'], values);
-        };
-
-        const prepareTransactionOutputsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert(this.m_db, 'transaction_outputs', ['hash', 'idx', 'amount', 'outputKey'], values);
-        };
-
-        const prepareTransactionPaymentIDsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
-            return prepareMultiInsert(this.m_db, 'transaction_paymentids', ['hash', 'paymentId'], values);
-        };
-
-        const combine = (a: IBulkQuery[], b: IBulkQuery[]): IBulkQuery[] => {
-            return a.concat(b);
-        };
-
-        Logger.debug('Applying DTS logic...');
-
-        for (const block of loadedBlocks) {
-            const result = await processBlock(block);
-
+        for (const result of results) {
             l_heights.push(result.height);
 
             l_hashes.push(result.hash);
-
-            result.blocks.map(elem => l_blocks.push(elem));
-
-            result.blockchain.map(elem => l_blockchain.push(elem));
-
-            result.transactions.map(elem => l_transactions.push(elem));
-
-            result.transaction_meta.map(elem => l_transaction_meta.push(elem));
-
-            result.inputs.map(elem => l_inputs.push(elem));
-
-            result.outputs.map(elem => l_outputs.push(elem));
-
-            result.paymentIds.map(elem => l_paymentIds.push(elem));
         }
 
-        let stmts: IBulkQuery[] = [];
-
-        const rows = l_blocks.length +
-            l_blockchain.length +
-            l_transactions.length +
-            l_transaction_meta.length +
-            l_inputs.length +
-            l_outputs.length +
-            l_paymentIds.length;
-
-        // Rewind the database to the lowest height we found in the blocks provided
-        await rewind();
-
-        // Prepare the blocks insert statement(s)
-        stmts = combine(stmts, await prepareBlockInsert(l_blocks));
-
-        // Prepare the blockchain insert statement(s)
-        stmts = combine(stmts, await prepareBlockchainInsert(l_blockchain));
-
-        // Prepare the transactions insert statement(s)
-        stmts = combine(stmts, await prepareTransactionsInsert(l_transactions));
-
-        // Prepare the transaction meta insert statement(s)
-        stmts = combine(stmts, await prepareTransactionMetaInsert(l_transaction_meta));
-
-        // Prepare the transaction inputs insert statement(s)
-        stmts = combine(stmts, await prepareTransactionInputsInsert(l_inputs));
-
-        // Prepare the transaction outputs insert statement(s)
-        stmts = combine(stmts, await prepareTransactionOutputsInsert(l_outputs));
-
-        // Prepare the transaction payment IDs insert statement(s)
-        stmts = combine(stmts, await prepareTransactionPaymentIDsInsert(l_paymentIds));
-
-        Logger.debug('Executing database transaction to insert %s rows with %s statements...',
-            rows, stmts.length);
-
-        const timer = new PerformanceTimer();
-
-        await this.m_db.transaction(stmts);
-
-        Logger.debug('Database transaction execution completed in %s seconds',
-            timer.elapsed.seconds.toFixed(2));
+        Logger.debug('Saved %s blocks to the database in %s seconds',
+            results.length, timer.elapsed.seconds.toFixed(2));
 
         return [l_heights.sort((a, b) => a - b), l_hashes];
     }

@@ -93,32 +93,36 @@ export class Collector extends EventEmitter {
 
         Logger.info('Database connection established...');
 
-        let [consistency, inconsistentRows] = await this.database.checkConsistency();
+        const checkConsistency = async () => {
+            let [consistency, inconsistentRows] = await this.database.checkConsistency();
 
-        while (!consistency) {
-            Logger.warn('Database consistency check failed... attempting recovery...');
+            while (!consistency) {
+                Logger.warn('Database consistency check failed... attempting recovery...');
 
-            let lowestHeight = Number.MAX_SAFE_INTEGER;
+                let lowestHeight = Number.MAX_SAFE_INTEGER;
 
-            for (const hash of inconsistentRows) {
-                const height = await this.database.heightFromHash(hash);
+                for (const hash of inconsistentRows) {
+                    const height = await this.database.heightFromHash(hash);
 
-                if (height < lowestHeight) {
-                    lowestHeight = height;
+                    if (height < lowestHeight) {
+                        lowestHeight = height;
+                    }
                 }
+
+                Logger.warn('Attempting rewind of database to: %s', lowestHeight);
+
+                await this.database.rewind(lowestHeight);
+
+                [consistency, inconsistentRows] = await this.database.checkConsistency();
+
+                Logger.debug('Database consistency state is now %s',
+                    (consistency) ? 'valid' : 'invalid');
             }
 
-            Logger.warn('Attempting rewind of database to: %s', lowestHeight);
+            Logger.info('Database consistency verified!');
+        };
 
-            await this.database.rewind(lowestHeight);
-
-            [consistency, inconsistentRows] = await this.database.checkConsistency();
-
-            Logger.debug('Database consistency state is now %s',
-                (consistency) ? 'valid' : 'invalid');
-        }
-
-        Logger.info('Database consistency verified!');
+        await checkConsistency();
 
         if (!await this.database.haveGenesis()) {
             try {
@@ -193,6 +197,8 @@ export class Collector extends EventEmitter {
         this.syncTimer.on('tick', async () => {
             // Pause while running to prevent overrunning ourselves
             this.syncTimer.paused = true;
+
+            await checkConsistency();
 
             const timer = new PerformanceTimer();
 

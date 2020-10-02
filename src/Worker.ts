@@ -6,13 +6,20 @@ import { IDatabase } from 'db-abstraction';
 import { RabbitMQ, getConnectionParameters } from '@turtlepay/rabbitmq';
 import { TurtleCoindTypes as TurtleCoindInterfaces } from 'turtlecoin-utils';
 import { Logger } from './Logger';
-import { loadRawBlock, processBlock, ProcessedBlock } from './BlockLoader';
+import { saveRawBlock } from './Statements';
+
+/** @ignore */
+export interface SaveRawBlockResponse {
+    height: number;
+    hash: string;
+}
 
 /** @ignore */
 export class RawBlockWorker {
     private readonly m_db: IDatabase;
     private readonly m_rabbit: RabbitMQ;
     private readonly m_queue: string;
+    private readonly m_timeout: number = 120;
 
     constructor (database: IDatabase, queue: string) {
         this.m_db = database;
@@ -26,10 +33,15 @@ export class RawBlockWorker {
         this.m_rabbit.on('log', error => Logger.error(error.toString()));
     }
 
-    protected async init () {
-        await this.m_rabbit.connect();
+    public async saveRawBlock (block: TurtleCoindInterfaces.IRawBlock): Promise<SaveRawBlockResponse> {
+        return this.m_rabbit.requestReply<TurtleCoindInterfaces.IRawBlock, SaveRawBlockResponse>(
+            this.m_queue, block, this.m_timeout * 1000, true);
+    }
 
-        await this.m_rabbit.createQueue(this.m_queue, true);
+    public async start () {
+        Logger.warn('Creating queue...');
+        await this.m_rabbit.createQueue(this.m_queue, true, false);
+        Logger.warn('Created...');
 
         await this.m_rabbit.registerConsumer<TurtleCoindInterfaces.IRawBlock>(this.m_queue, 1);
 
@@ -39,11 +51,9 @@ export class RawBlockWorker {
                     Logger.debug('Received request to process block...');
 
                     try {
-                        const block = await loadRawBlock(payload);
+                        const result = await saveRawBlock(this.m_db, payload);
 
-                        const result = await processBlock(block);
-
-                        const success = await this.m_rabbit.reply<ProcessedBlock>(message, result);
+                        const success = await this.m_rabbit.reply<SaveRawBlockResponse>(message, result);
 
                         if (success) {
                             return this.m_rabbit.ack(message);
@@ -55,6 +65,10 @@ export class RawBlockWorker {
                     }
                 }
             });
+    }
+
+    public async init () {
+        await this.m_rabbit.connect();
     }
 
     public static async init (database: IDatabase, queue: string): Promise<RawBlockWorker> {

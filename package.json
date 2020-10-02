@@ -15,6 +15,7 @@
     "style": "./node_modules/.bin/eslint src/**/*.ts",
     "fix-style": "./node_modules/.bin/eslint --fix src/**/*.ts",
     "start": "node ./dist/launch.js",
+    "worker": "node ./dist/launchWorker.js",
     "rewind": "node ./dist/rewind.js",
     "reset": "node ./dist/reset.js",
     "checkdb": "node ./dist/check.js",
@@ -37,7 +38,7 @@
   },
   "homepage": "https://github.com/turtlepay/blockchain-database#readme",
   "dependencies": {
-    "@turtlepay/rabbitmq": "^0.0.2",
+    "@turtlepay/rabbitmq": "^0.0.3",
     "big-integer": "^1.6.48",
     "db-abstraction": "^1.0.1",
     "dotenv": "^8.2.0",
