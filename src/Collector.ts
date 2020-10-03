@@ -258,7 +258,15 @@ export class Collector extends EventEmitter {
 
                     const headerHeight = (i < minHeight) ? minHeight : i;
 
-                    const results = await this.rpc.blockHeaders(headerHeight);
+                    let results;
+
+                    while (!results) {
+                        try {
+                            results = await this.rpc.blockHeaders(headerHeight);
+                        } catch (e) {
+                            Logger.warn('Retrying retrieving block headers to: %s', e.toString());
+                        }
+                    }
 
                     for (const header of results) {
                         if (blockHashes.indexOf(header.hash) !== -1 && !headerExists(header.hash)) {
