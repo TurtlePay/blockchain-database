@@ -249,17 +249,17 @@ export class Collector extends EventEmitter {
 
                 /* Sure, we could go get the meta data for the blocks one at a time but lets face it
                    multiple requests in sequence for this data is just a pain to handle */
-                const promises = [];
+                const metaResults = [];
 
                 for (let i = maxHeight; i > minHeight; i -= 30) {
                     const headerHeight = (i < minHeight) ? minHeight : i;
 
-                    promises.push(this.rpc.blockHeaders(headerHeight));
+                    const results = await this.rpc.blockHeaders(headerHeight);
+
+                    metaResults.push(results);
 
                     Logger.debug('Retrieving block headers to: %s', headerHeight);
                 }
-
-                const metaResults = await Promise.all(promises);
 
                 const headers: TurtleCoindInterfaces.IBlock[] = [];
 
