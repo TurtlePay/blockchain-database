@@ -19,7 +19,7 @@ export class RawBlockWorker {
     private readonly m_db: IDatabase;
     private readonly m_rabbit: RabbitMQ;
     private readonly m_queue: string;
-    private readonly m_timeout: number = 120;
+    private readonly m_timeout: number = 600;
 
     constructor (database: IDatabase, queue: string) {
         this.m_db = database;
