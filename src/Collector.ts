@@ -43,7 +43,7 @@ export class Collector extends EventEmitter {
 
         this.database = new BlockchainDB(database);
 
-        this.rpc = new TurtleCoind(daemonHost, daemonPort, undefined, daemonSSL);
+        this.rpc = new TurtleCoind(daemonHost, daemonPort, 120000, daemonSSL);
 
         this.informationTimer = new Metronome(5000, true);
 
