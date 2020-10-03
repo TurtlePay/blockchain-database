@@ -212,16 +212,16 @@ export class Collector extends EventEmitter {
 
             let maxHeight = 0;
 
-            Logger.debug('Requesting raw blocks from daemon using %s checkpoints', checkpoints.length);
-
-            const syncResults = await this.rpc.rawSync(
-                checkpoints, undefined, undefined, undefined, this.block_batch_size);
-
-            Logger.debug('Daemon reports that we are currently %s and returned %s blocks',
-                (syncResults.synced) ? 'synced' : 'not synced',
-                syncResults.blocks.length);
-
             try {
+                Logger.debug('Requesting raw blocks from daemon using %s checkpoints', checkpoints.length);
+
+                const syncResults = await this.rpc.rawSync(
+                    checkpoints, undefined, undefined, undefined, this.block_batch_size);
+
+                Logger.debug('Daemon reports that we are currently %s and returned %s blocks',
+                    (syncResults.synced) ? 'synced' : 'not synced',
+                    syncResults.blocks.length);
+
                 const [blockHeights, blockHashes] =
                     await this.database.saveRawBlocks(syncResults.blocks);
 
