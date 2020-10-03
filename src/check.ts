@@ -43,4 +43,6 @@ import { getDatabase, checkProduction } from './Common';
     }
 
     Logger.info('Database consistency verified!');
+
+    process.exit(0);
 })();

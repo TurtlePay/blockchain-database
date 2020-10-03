@@ -28,4 +28,6 @@ import { getDatabase, checkProduction } from './Common';
     }
 
     Logger.info('Rewound database to: %s', rewindTo);
+
+    process.exit(0);
 })();

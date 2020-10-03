@@ -20,4 +20,6 @@ import { getDatabase, checkProduction } from './Common';
     await blockchain.reset();
 
     Logger.info('Database reset complete.');
+
+    process.exit(0);
 })();
