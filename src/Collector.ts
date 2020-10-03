@@ -247,34 +247,27 @@ export class Collector extends EventEmitter {
 
                 Logger.debug('Saved global indexes for %s transactions to the database', indexes.length);
 
-                /* Sure, we could go get the meta data for the blocks one at a time but lets face it
-                   multiple requests in sequence for this data is just a pain to handle */
-                const metaResults = [];
-
-                for (let i = maxHeight; i > minHeight; i -= 30) {
-                    const headerHeight = (i < minHeight) ? minHeight : i;
-
-                    const results = await this.rpc.blockHeaders(headerHeight);
-
-                    metaResults.push(results);
-
-                    Logger.debug('Retrieving block headers to: %s', headerHeight);
-                }
-
                 const headers: TurtleCoindInterfaces.IBlock[] = [];
 
                 const headerExists = (hash: string) => {
                     return headers.filter(elem => elem.hash === hash).length !== 0;
                 };
 
-                // Loop the meta results into a single dimension
-                for (const metaResult of metaResults) {
-                    for (const header of metaResult) {
-                        if (blockHashes.indexOf(header.hash) !== -1 &&
-                            !headerExists(header.hash)) {
+                for (let i = maxHeight; i > minHeight; i -= 30) {
+                    const _timer = new PerformanceTimer();
+
+                    const headerHeight = (i < minHeight) ? minHeight : i;
+
+                    const results = await this.rpc.blockHeaders(headerHeight);
+
+                    for (const header of results) {
+                        if (blockHashes.indexOf(header.hash) !== -1 && !headerExists(header.hash)) {
                             headers.push(header);
                         }
                     }
+
+                    Logger.debug('Retrieved block headers to: %s in %s seconds', headerHeight,
+                        _timer.elapsed.seconds.toFixed(2));
                 }
 
                 Logger.debug('Received %s block headers from daemon', headers.length);
