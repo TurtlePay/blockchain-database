@@ -253,6 +253,8 @@ export class Collector extends EventEmitter {
                     return headers.filter(elem => elem.hash === hash).length !== 0;
                 };
 
+                Logger.debug('Fetching block headers...');
+
                 for (let i = maxHeight; i > minHeight; i -= 30) {
                     const _timer = new PerformanceTimer();
 
