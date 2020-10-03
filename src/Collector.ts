@@ -198,21 +198,23 @@ export class Collector extends EventEmitter {
             // Pause while running to prevent overrunning ourselves
             this.syncTimer.paused = true;
 
-            await checkConsistency();
-
-            const timer = new PerformanceTimer();
-
-            const checkpoints = await this.database.hashesForSync();
-
-            const lastKnownBlock = await this.database.getBlock(checkpoints[0]);
-
-            let minHeight: number = lastKnownBlock.height;
-
-            Logger.debug('Database last known block height: %s', minHeight);
+            let minHeight = 0;
 
             let maxHeight = 0;
 
+            const timer = new PerformanceTimer();
+
             try {
+                await checkConsistency();
+
+                const checkpoints = await this.database.hashesForSync();
+
+                const lastKnownBlock = await this.database.getBlock(checkpoints[0]);
+
+                minHeight = lastKnownBlock.height;
+
+                Logger.debug('Database last known block height: %s', minHeight);
+
                 Logger.debug('Requesting raw blocks from daemon using %s checkpoints', checkpoints.length);
 
                 const syncResults = await this.rpc.rawSync(
