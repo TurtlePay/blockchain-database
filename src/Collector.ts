@@ -45,11 +45,11 @@ export class Collector extends EventEmitter {
 
         this.rpc = new TurtleCoind(daemonHost, daemonPort, 120000, daemonSSL);
 
-        this.informationTimer = new Metronome(5000, true);
+        this.informationTimer = new Metronome(5000, false);
 
-        this.transactionPoolTimer = new Metronome(5000, true);
+        this.transactionPoolTimer = new Metronome(5000, false);
 
-        this.syncTimer = new Metronome(5000, true);
+        this.syncTimer = new Metronome(5000, false);
 
         this.m_default_block_batch_size = block_batch_size;
 
@@ -281,7 +281,7 @@ export class Collector extends EventEmitter {
      * @param txnCount the expected number of transactions that we should receive when fetching the global output indexes
      * @private
      */
-    private async fetch_global_indexes (
+    public async fetch_global_indexes (
         startHeight: number,
         endHeight: number,
         txnCount: number
@@ -311,8 +311,10 @@ export class Collector extends EventEmitter {
          * If we are unable to retrieve the global output indexes in one big batch
          * then we need to break it up into smaller batches
          */
-        for (let i = startHeight; i < endHeight; i += 10) {
+        for (let i = startHeight; i <= endHeight; i += 10 + 1) {
             const end = (i + 10 > endHeight) ? endHeight : i + 10;
+
+            Logger.info('Attempting the retrieval of global output indexes: %s -> %s', i, end);
 
             let results;
 
