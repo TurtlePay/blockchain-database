@@ -224,6 +224,10 @@ export class Collector extends EventEmitter {
                     (syncResults.synced) ? 'synced' : 'not synced',
                     syncResults.blocks.length);
 
+                if (syncResults.synced && syncResults.blocks.length === 0) {
+                    return;
+                }
+
                 const [blockHeights, blockHashes, transactionCount] =
                     await this.database.saveRawBlocks(syncResults.blocks);
 
