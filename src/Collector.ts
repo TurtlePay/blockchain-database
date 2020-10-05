@@ -45,11 +45,11 @@ export class Collector extends EventEmitter {
 
         this.rpc = new TurtleCoind(daemonHost, daemonPort, 120000, daemonSSL);
 
-        this.informationTimer = new Metronome(5000, false);
+        this.informationTimer = new Metronome(5000, true);
 
-        this.transactionPoolTimer = new Metronome(5000, false);
+        this.transactionPoolTimer = new Metronome(5000, true);
 
-        this.syncTimer = new Metronome(5000, false);
+        this.syncTimer = new Metronome(5000, true);
 
         this.m_default_block_batch_size = block_batch_size;
 
