@@ -99,6 +99,7 @@ export async function saveRawBlock (
 
     return {
         height: processedBlock.height,
-        hash: processedBlock.hash
+        hash: processedBlock.hash,
+        txnCount: (block.txns) ? block.txns.length : 0
     };
 }

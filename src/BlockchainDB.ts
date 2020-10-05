@@ -939,11 +939,14 @@ export class BlockchainDB implements ITurtleCoind {
      * Saves a series of raw blocks to the underlying database
      * @param blocks the raw blocks to save
      */
-    public async saveRawBlocks (blocks: TurtleCoindInterfaces.IRawBlock[]): Promise<[number[], string[]]> {
+    public async saveRawBlocks (
+        blocks: TurtleCoindInterfaces.IRawBlock[]
+    ): Promise<[number[], string[], number]> {
         const l_heights: number[] = [];
         const l_hashes: string[] = [];
+        let txnCount = 0;
 
-        if (blocks.length === 0) return [l_heights, l_hashes];
+        if (blocks.length === 0) return [l_heights, l_hashes, 0];
 
         const timer = new PerformanceTimer();
 
@@ -967,12 +970,17 @@ export class BlockchainDB implements ITurtleCoind {
             l_heights.push(result.height);
 
             l_hashes.push(result.hash);
+
+            txnCount += result.txnCount;
         }
 
         Logger.debug('Saved %s blocks to the database in %s seconds',
             results.length, timer.elapsed.seconds.toFixed(2));
 
-        return [l_heights.sort((a, b) => a - b), l_hashes];
+        return [
+            l_heights.sort((a, b) => a - b),
+            l_hashes,
+            txnCount];
     }
 
     /**

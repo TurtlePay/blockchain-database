@@ -12,6 +12,7 @@ import { saveRawBlock } from './Statements';
 export interface SaveRawBlockResponse {
     height: number;
     hash: string;
+    txnCount: number;
 }
 
 /** @ignore */

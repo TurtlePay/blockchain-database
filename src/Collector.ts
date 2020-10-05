@@ -224,7 +224,7 @@ export class Collector extends EventEmitter {
                     (syncResults.synced) ? 'synced' : 'not synced',
                     syncResults.blocks.length);
 
-                const [blockHeights, blockHashes] =
+                const [blockHeights, blockHashes, transactionCount] =
                     await this.database.saveRawBlocks(syncResults.blocks);
 
                 Logger.debug('Saved raw blocks to database: %s', blockHeights.length);
@@ -239,7 +239,7 @@ export class Collector extends EventEmitter {
 
                 Logger.debug('Saved blocks start: %s and end: %s', minHeight, maxHeight);
 
-                const indexes = await this.rpc.indexes(minHeight, maxHeight);
+                const indexes = await this.fetch_global_indexes(minHeight, maxHeight, transactionCount);
 
                 Logger.debug('Retrieved global indexes for %s transactions', indexes.length);
 
@@ -247,38 +247,7 @@ export class Collector extends EventEmitter {
 
                 Logger.debug('Saved global indexes for %s transactions to the database', indexes.length);
 
-                const headers: TurtleCoindInterfaces.IBlock[] = [];
-
-                const headerExists = (hash: string) => {
-                    return headers.filter(elem => elem.hash === hash).length !== 0;
-                };
-
-                Logger.debug('Fetching block headers...');
-
-                for (let i = maxHeight; i > minHeight; i -= 30) {
-                    const _timer = new PerformanceTimer();
-
-                    const headerHeight = (i < minHeight) ? minHeight : i;
-
-                    let results;
-
-                    while (!results) {
-                        try {
-                            results = await this.rpc.blockHeaders(headerHeight);
-                        } catch (e) {
-                            Logger.warn('Retrying retrieving block headers to: %s', e.toString());
-                        }
-                    }
-
-                    for (const header of results) {
-                        if (blockHashes.indexOf(header.hash) !== -1 && !headerExists(header.hash)) {
-                            headers.push(header);
-                        }
-                    }
-
-                    Logger.debug('Retrieved block headers to: %s in %s seconds', headerHeight,
-                        _timer.elapsed.seconds.toFixed(2));
-                }
+                const headers = await this.fetch_block_headers(blockHashes, minHeight, maxHeight);
 
                 Logger.debug('Received %s block headers from daemon', headers.length);
 
@@ -303,6 +272,144 @@ export class Collector extends EventEmitter {
                 this.syncTimer.paused = false;
             }
         });
+    }
+
+    /**
+     * Fetches the global output indexes for the transactions in the given range
+     * @param startHeight the start height of the blocks to retrieve the global indexes for
+     * @param endHeight the end height of the blocks to retrieve the global indexes for
+     * @param txnCount the expected number of transactions that we should receive when fetching the global output indexes
+     * @private
+     */
+    private async fetch_global_indexes (
+        startHeight: number,
+        endHeight: number,
+        txnCount: number
+    ): Promise<TurtleCoindInterfaces.ITransactionIndexes[]> {
+        const timer = new PerformanceTimer();
+
+        const indexes: TurtleCoindInterfaces.ITransactionIndexes[] = [];
+
+        // Try to retrieve the global output indexes in one large batch
+        try {
+            const results = await this.rpc.indexes(startHeight, endHeight);
+
+            Logger.info('Retrieved global output indexes in %s seconds',
+                timer.elapsed.seconds.toFixed(2));
+
+            if (results.length === txnCount) {
+                return results;
+            } else {
+                Logger.warn('Expected global output indexes for %s transactions but received %s',
+                    txnCount, results.length);
+            }
+        } catch {}
+
+        Logger.warn('Failed to retrieve global output indexes... attempting smaller chunks...');
+
+        /**
+         * If we are unable to retrieve the global output indexes in one big batch
+         * then we need to break it up into smaller batches
+         */
+        for (let i = startHeight; i < endHeight; i += 10) {
+            const end = (i + 10 > endHeight) ? endHeight : i + 10;
+
+            let results;
+
+            while (!results) {
+                try {
+                    results = await this.rpc.indexes(i, end);
+                } catch (e) {
+                    Logger.warn('Retrying the retrieval of global output indexes for: %s -> %s', i, end);
+                }
+            }
+
+            results.map(elem => indexes.push(elem));
+        }
+
+        if (indexes.length !== txnCount) {
+            throw new Error('Invalid transaction count');
+        }
+
+        Logger.info('Retrieved global output indexes in %s seconds',
+            timer.elapsed.seconds.toFixed(2));
+
+        return indexes;
+    }
+
+    /**
+     * Fetches the block headers for the given block range
+     * @param knownBlockHashes the list of known block hashes we are looking for
+     * @param startHeight the start height of the blocks to retrieve the headers for
+     * @param endHeight the end height of the blocks to retrieve the headers for
+     * @private
+     */
+    private async fetch_block_headers (
+        knownBlockHashes: string[],
+        startHeight: number,
+        endHeight: number
+    ): Promise<TurtleCoindInterfaces.IBlock[]> {
+        const headers: TurtleCoindInterfaces.IBlock[] = [];
+
+        const headerExists = (hash: string) => {
+            return headers.filter(elem => elem.hash === hash).length !== 0;
+        };
+
+        Logger.debug('Fetching block headers...');
+
+        for (let i = endHeight; i > startHeight; i -= 30) {
+            const _timer = new PerformanceTimer();
+
+            const headerHeight = (i < startHeight) ? endHeight : i;
+
+            let results: TurtleCoindInterfaces.IBlock[] = [];
+
+            // try to retrieve the headers via the bulk/batch mode provided
+            {
+                let attempt = 0;
+
+                while (!results && attempt <= 4) {
+                    try {
+                        results = await this.rpc.blockHeaders(headerHeight);
+                    } catch (e) {
+                        attempt++;
+
+                        Logger.warn('Retrying the retrieval of block headers to: %s', e.toString());
+                    }
+                }
+            }
+
+            /**
+             * If we were unable to retrieve the block headers in batch mode then we
+             * need to attempt to retrieve them one by one
+             */
+            if (results.length === 0) {
+                for (let j = headerHeight; j >= headerHeight - 30; j--) {
+                    let result;
+
+                    while (!result) {
+                        try {
+                            result = await this.rpc.block(j);
+                        } catch (e) {
+                            Logger.warn('Retrying the retrieval of block header for: %s', j);
+                        }
+                    }
+
+                    results.push(result);
+                }
+            }
+
+            for (const header of results) {
+                if (knownBlockHashes.indexOf(header.hash) !== -1 && !headerExists(header.hash)) {
+                    headers.push(header);
+                }
+            }
+
+            Logger.debug('Retrieved block headers to: %s in %s seconds', headerHeight,
+                _timer.elapsed.seconds.toFixed(2));
+        }
+
+        return headers;
     }
 
     /**
