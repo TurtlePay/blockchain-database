@@ -328,6 +328,9 @@ export class Collector extends EventEmitter {
         }
 
         if (indexes.length !== txnCount) {
+            Logger.warn('Expected global output indexes for %s transactions but received %s',
+                txnCount, indexes.length);
+
             throw new Error('Invalid transaction count');
         }
 
