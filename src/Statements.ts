@@ -4,7 +4,7 @@
 
 import { loadRawBlock, processBlock, ProcessedBlock } from './BlockLoader';
 import { IDatabase, Interfaces } from 'db-abstraction';
-import { Logger } from './Logger';
+import { Logger } from '@turtlepay/logger';
 import { TurtleCoindTypes as TurtleCoindInterfaces } from 'turtlecoin-utils';
 import { PerformanceTimer } from './PerformanceTimer';
 import { SaveRawBlockResponse } from './Worker';

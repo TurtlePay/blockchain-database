@@ -2,7 +2,7 @@
 //
 // Please see the included LICENSE file for more information.
 
-import { Logger } from './Logger';
+import { Logger } from '@turtlepay/logger';
 import { BlockchainDB } from './BlockchainDB';
 import { getDatabase, checkProduction } from './Common';
 

@@ -3,7 +3,7 @@
 // Please see the included LICENSE file for more information.
 
 import { RawBlockWorker } from './Worker';
-import { Logger } from './Logger';
+import { Logger } from '@turtlepay/logger';
 import { getDatabase, checkProduction } from './Common';
 
 (async () => {

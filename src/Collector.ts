@@ -6,7 +6,7 @@ import { TurtleCoind, TurtleCoindTypes as TurtleCoindInterfaces } from 'turtleco
 import { BlockchainDB } from './BlockchainDB';
 import { IDatabase } from 'db-abstraction';
 import { EventEmitter } from 'events';
-import { Logger, addLog } from './Logger';
+import { Logger, addLog } from '@turtlepay/logger';
 import { Metronome } from 'node-metronome';
 import { PerformanceTimer } from './PerformanceTimer';
 

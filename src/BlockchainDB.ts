@@ -13,7 +13,7 @@ import {
     TurtleCoindTypes as TurtleCoindInterfaces
 } from 'turtlecoin-utils';
 import { format } from 'util';
-import { Logger } from './Logger';
+import { Logger } from '@turtlepay/logger';
 import * as BigInteger from 'big-integer';
 import { PerformanceTimer } from './PerformanceTimer';
 import { prepareMultiInsert, saveRawBlock } from './Statements';

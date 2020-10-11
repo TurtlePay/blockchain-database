@@ -11,7 +11,7 @@ import {
 } from 'turtlecoin-utils';
 import { Interfaces as DBInterfaces } from 'db-abstraction';
 import { PerformanceTimer } from './PerformanceTimer';
-import { Logger } from './Logger';
+import { Logger } from '@turtlepay/logger';
 
 /** @ignore */
 import IValueArray = DBInterfaces.IValueArray;

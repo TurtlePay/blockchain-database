@@ -5,7 +5,7 @@
 import { IDatabase } from 'db-abstraction';
 import { RabbitMQ, getConnectionParameters } from '@turtlepay/rabbitmq';
 import { TurtleCoindTypes as TurtleCoindInterfaces } from 'turtlecoin-utils';
-import { Logger } from './Logger';
+import { Logger } from '@turtlepay/logger';
 import { saveRawBlock } from './Statements';
 
 /** @ignore */

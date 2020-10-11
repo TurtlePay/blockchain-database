@@ -3,7 +3,7 @@
 // Please see the included LICENSE file for more information.
 
 import { Collector } from './Collector';
-import { Logger } from './Logger';
+import { Logger } from '@turtlepay/logger';
 import { getDatabase, getNode, checkProduction } from './Common';
 
 (async () => {

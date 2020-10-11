@@ -38,13 +38,13 @@
   },
   "homepage": "https://github.com/turtlepay/blockchain-database#readme",
   "dependencies": {
+    "@turtlepay/logger": "^0.0.1",
     "@turtlepay/rabbitmq": "^0.0.3",
     "big-integer": "^1.6.48",
     "db-abstraction": "^1.0.4",
     "dotenv": "^8.2.0",
     "node-metronome": "0.0.12",
-    "turtlecoin-utils": "^3.0.4",
-    "winston": "^3.3.3"
+    "turtlecoin-utils": "^3.0.4"
   },
   "devDependencies": {
     "@types/node": "^14.11.2",

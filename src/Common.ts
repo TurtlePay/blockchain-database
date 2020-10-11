@@ -3,7 +3,7 @@
 // Please see the included LICENSE file for more information.
 
 import { Postgres, SQLite, MySQL, IDatabase } from 'db-abstraction';
-import { Logger } from './Logger';
+import { Logger } from '@turtlepay/logger';
 
 /** @ignore */
 require('dotenv').config();
