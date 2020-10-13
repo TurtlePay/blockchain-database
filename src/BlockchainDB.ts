@@ -412,12 +412,8 @@ export class BlockchainDB implements ITurtleCoind {
      * @private
      */
     private async getTransactionOutputs (hash: string): Promise<{amount: number, outputKey: string}[]> {
-        const [count, rows] = await this.m_db.query(
+        const [, rows] = await this.m_db.query(
             'SELECT amount, outputKey FROM transaction_outputs WHERE hash = ? ORDER BY idx ASC', [hash]);
-
-        if (count === 0) {
-            throw new Error('Could not find transaction output: ' + hash);
-        }
 
         return rows.map(row => {
             return {
