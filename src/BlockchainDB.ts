@@ -416,7 +416,7 @@ export class BlockchainDB implements ITurtleCoind {
             'SELECT amount, outputKey FROM transaction_outputs WHERE hash = ? ORDER BY idx ASC', [hash]);
 
         if (count === 0) {
-            throw new Error('Could not find transaction output');
+            throw new Error('Could not find transaction output: ' + hash);
         }
 
         return rows.map(row => {
