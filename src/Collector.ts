@@ -6,7 +6,7 @@ import { TurtleCoind, TurtleCoindTypes as TurtleCoindInterfaces } from 'turtleco
 import { BlockchainDB } from './BlockchainDB';
 import { IDatabase } from 'db-abstraction';
 import { EventEmitter } from 'events';
-import { Logger, addLog } from '@turtlepay/logger';
+import { Logger } from '@turtlepay/logger';
 import { Metronome } from 'node-metronome';
 import { PerformanceTimer } from './PerformanceTimer';
 
@@ -480,14 +480,5 @@ export class Collector extends EventEmitter {
         this.m_destroyed = true;
 
         return this.database.close();
-    }
-
-    /**
-     * Allows for adding an additional file based log
-     * @param filename the filename to save the log to
-     * @param level the minimum level to log
-     */
-    public addLog (filename: string, level?: string): void {
-        addLog(filename, level);
     }
 }
