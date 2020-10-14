@@ -2,7 +2,7 @@
 //
 // Please see the included LICENSE file for more information.
 
-import { RawBlockWorker } from './Worker';
+import { RawBlockWorker } from './RawBlockWorker';
 import { Logger } from '@turtlepay/logger';
 import { getDatabase, checkProduction } from './Common';
 
@@ -13,7 +13,9 @@ import { getDatabase, checkProduction } from './Common';
 
     Logger.info('Starting raw block processor...');
 
-    const worker = await RawBlockWorker.init(database, 'rawblock-processor');
+    const worker = new RawBlockWorker(database, 'rawblock-processor');
+
+    await worker.init();
 
     await worker.start();
 

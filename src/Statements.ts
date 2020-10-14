@@ -7,7 +7,7 @@ import { IDatabase, Interfaces } from 'db-abstraction';
 import { Logger } from '@turtlepay/logger';
 import { TurtleCoindTypes as TurtleCoindInterfaces } from 'turtlecoin-utils';
 import { PerformanceTimer } from './PerformanceTimer';
-import { SaveRawBlockResponse } from './Worker';
+import { SaveRawBlockResponse } from './RawBlockWorker';
 import IBulkQuery = Interfaces.IBulkQuery;
 import IValueArray = Interfaces.IValueArray;
 

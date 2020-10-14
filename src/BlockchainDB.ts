@@ -17,7 +17,7 @@ import { Logger } from '@turtlepay/logger';
 import * as BigInteger from 'big-integer';
 import { PerformanceTimer } from './PerformanceTimer';
 import { prepareMultiInsert, saveRawBlock } from './Statements';
-import { RawBlockWorker, SaveRawBlockResponse } from './Worker';
+import { RawBlockWorker, SaveRawBlockResponse } from './RawBlockWorker';
 
 /** @ignore */
 require('dotenv').config();
@@ -49,7 +49,7 @@ export interface ILoadedRawBlock extends TurtleCoindInterfaces.IRawBlock {
  */
 export class BlockchainDB implements ITurtleCoind {
     private readonly m_db: IDatabase;
-    private readonly m_worker?: RawBlockWorker;
+    private readonly m_worker: RawBlockWorker;
     private m_useWorkers = false;
 
     /**
@@ -59,14 +59,10 @@ export class BlockchainDB implements ITurtleCoind {
     constructor (database: IDatabase) {
         this.m_db = database;
 
-        try {
-            this.m_worker = new RawBlockWorker(database, 'rawblock-processor');
-        } catch {
-            Logger.warn('Using local block processor.');
-        }
+        this.m_worker = new RawBlockWorker(database, 'rawblock-processor');
 
         // We cannot use clustered workers with SQLITE
-        if (this.m_db.type !== DBType.SQLITE && this.m_worker) {
+        if (this.m_db.type !== DBType.SQLITE) {
             this.m_worker.init()
                 .then(() => {
                     this.m_useWorkers = true;
@@ -966,7 +962,7 @@ export class BlockchainDB implements ITurtleCoind {
         for (const block of blocks) {
             if (this.m_db.type === DBType.SQLITE) {
                 results.push(await saveRawBlock(this.m_db, block));
-            } else if (this.useWorkers && this.m_worker) {
+            } else if (this.useWorkers) {
                 promises.push(this.m_worker.saveRawBlock(block));
             } else {
                 promises.push(saveRawBlock(this.m_db, block));
