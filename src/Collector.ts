@@ -94,6 +94,8 @@ export class Collector extends EventEmitter {
         Logger.info('Database connection established...');
 
         const checkConsistency = async () => {
+            Logger.info('Checking database consistency...');
+
             let [consistency, inconsistentRows] = await this.database.checkConsistency();
 
             while (!consistency) {
