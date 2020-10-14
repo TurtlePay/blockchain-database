@@ -49,7 +49,7 @@ export interface ILoadedRawBlock extends TurtleCoindInterfaces.IRawBlock {
  */
 export class BlockchainDB implements ITurtleCoind {
     private readonly m_db: IDatabase;
-    private readonly m_worker: RawBlockWorker;
+    private readonly m_worker?: RawBlockWorker;
     private m_useWorkers = false;
 
     /**
@@ -59,10 +59,14 @@ export class BlockchainDB implements ITurtleCoind {
     constructor (database: IDatabase) {
         this.m_db = database;
 
-        this.m_worker = new RawBlockWorker(database, 'rawblock-processor');
+        try {
+            this.m_worker = new RawBlockWorker(database, 'rawblock-processor');
+        } catch {
+            Logger.warn('Using local block processor.');
+        }
 
         // We cannot use clustered workers with SQLITE
-        if (this.m_db.type !== DBType.SQLITE) {
+        if (this.m_db.type !== DBType.SQLITE && this.m_worker) {
             this.m_worker.init()
                 .then(() => {
                     this.m_useWorkers = true;
@@ -962,7 +966,7 @@ export class BlockchainDB implements ITurtleCoind {
         for (const block of blocks) {
             if (this.m_db.type === DBType.SQLITE) {
                 results.push(await saveRawBlock(this.m_db, block));
-            } else if (this.useWorkers) {
+            } else if (this.useWorkers && this.m_worker) {
                 promises.push(this.m_worker.saveRawBlock(block));
             } else {
                 promises.push(saveRawBlock(this.m_db, block));
