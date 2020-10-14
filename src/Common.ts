@@ -33,7 +33,7 @@ export async function getDatabase (): Promise<IDatabase> {
         Logger.info('Using MySQL Backend...');
 
         if (host === undefined || user === undefined || pass === undefined || db === undefined) {
-            console.error('\n\n!! Missing database connection parameters in environment variables !!\n\n');
+            Logger.error('\n\n!! Missing database connection parameters in environment variables !!\n\n');
 
             process.exit(1);
         }
@@ -45,7 +45,7 @@ export async function getDatabase (): Promise<IDatabase> {
         Logger.info('Using Postgres Backend...');
 
         if (host === undefined || user === undefined || pass === undefined || db === undefined) {
-            console.error('\n\n!! Missing database connection parameters in environment variables !!\n\n');
+            Logger.error('\n\n!! Missing database connection parameters in environment variables !!\n\n');
 
             process.exit(1);
         }
