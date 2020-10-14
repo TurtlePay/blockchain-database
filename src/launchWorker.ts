@@ -22,7 +22,7 @@ import { getDatabase, checkProduction } from './Common';
 
         Logger.info('Waiting for requests...');
     } catch (e) {
-        Logger.error('Cannot connect to RabbitMQ server. Exiting...');
+        Logger.error('Cannot connect to RabbitMQ server: %s \nExiting...', e.toString());
 
         process.exit(1);
     }
