@@ -40,15 +40,15 @@ export async function prepareProcessedBlockStatements (
 
     result = combine(result,
         await prepareMultiInsert(database, 'transaction_inputs',
-            ['hash', 'keyImage'], block.inputs));
+            ['hash', 'keyimage'], block.inputs));
 
     result = combine(result,
         await prepareMultiInsert(database, 'transaction_outputs',
-            ['hash', 'idx', 'amount', 'outputKey'], block.outputs));
+            ['hash', 'idx', 'amount', 'outputkey'], block.outputs));
 
     result = combine(result,
         await prepareMultiInsert(database, 'transaction_paymentids',
-            ['hash', 'paymentId'], block.paymentIds));
+            ['hash', 'paymentid'], block.paymentIds));
 
     return result;
 }
@@ -85,6 +85,16 @@ export async function saveRawBlock (
     const block = await loadRawBlock(rawBlock);
 
     const processedBlock = await processBlock(block);
+
+    const [count] = await database.query('SELECT hash FROM blocks WHERE hash = ?', [processedBlock.hash]);
+
+    if (count !== 0) {
+        return {
+            height: processedBlock.height,
+            hash: processedBlock.hash,
+            txnCount: (block.txns) ? block.txns.length : 0
+        };
+    }
 
     const stmts = await prepareProcessedBlockStatements(database, processedBlock);
 
