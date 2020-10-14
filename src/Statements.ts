@@ -62,6 +62,8 @@ export async function prepareMultiInsert (
 ): Promise<IBulkQuery[]> {
     Logger.debug('Preparing insert statements into %s table for %s rows...', table, values.length);
 
+    const timer = new PerformanceTimer();
+
     const result: IBulkQuery[] = [];
 
     while (values.length > 0) {
@@ -73,6 +75,9 @@ export async function prepareMultiInsert (
 
         result.push({ query: stmt });
     }
+
+    Logger.debug('Prepared insert statements for %s table for %s rows in %s seconds',
+        table, values.length, timer.elapsed.seconds.toFixed(2));
 
     return result;
 }
@@ -98,14 +103,15 @@ export async function saveRawBlock (
 
     const stmts = await prepareProcessedBlockStatements(database, processedBlock);
 
-    Logger.debug('Executing database transaction of %s statements...', stmts.length);
+    Logger.info('Executing database transaction of %s statements for %s...',
+        stmts.length, processedBlock.hash);
 
     const timer = new PerformanceTimer();
 
     await database.transaction(stmts);
 
-    Logger.debug('Database transaction execution completed in %s seconds',
-        timer.elapsed.seconds.toFixed(2));
+    Logger.info('Database transaction execution completed for %s in %s seconds',
+        processedBlock.hash, timer.elapsed.seconds.toFixed(2));
 
     return {
         height: processedBlock.height,
