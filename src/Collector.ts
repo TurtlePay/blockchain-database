@@ -393,7 +393,11 @@ export class Collector extends EventEmitter {
              * need to attempt to retrieve them one by one
              */
             if (results.length === 0) {
-                for (let j = headerHeight; j >= headerHeight - 30; j--) {
+                for (let j = headerHeight; j >= (headerHeight - 30); j--) {
+                    if (j < 0) {
+                        break;
+                    }
+
                     let result;
 
                     while (!result) {
