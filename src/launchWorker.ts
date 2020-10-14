@@ -13,11 +13,17 @@ import { getDatabase, checkProduction } from './Common';
 
     Logger.info('Starting raw block processor...');
 
-    const worker = new RawBlockWorker(database, 'rawblock-processor');
+    try {
+        const worker = new RawBlockWorker(database, 'rawblock-processor');
 
-    await worker.init();
+        await worker.init();
 
-    await worker.start();
+        await worker.start();
 
-    Logger.info('Waiting for requests...');
+        Logger.info('Waiting for requests...');
+    } catch (e) {
+        Logger.error('Cannot connect to RabbitMQ server. Exiting...');
+
+        process.exit(1);
+    }
 })();
