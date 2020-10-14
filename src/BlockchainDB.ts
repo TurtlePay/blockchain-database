@@ -36,6 +36,8 @@ import CoinbaseInput = TransactionInputs.CoinbaseInput;
 import InputType = TransactionInputs.InputType;
 /** @ignore */
 import OutputType = TransactionOutputs.OutputType;
+/** @ignore */
+import DBType = Interfaces.DBType;
 
 /** @ignore */
 export interface ILoadedRawBlock extends TurtleCoindInterfaces.IRawBlock {
@@ -59,15 +61,18 @@ export class BlockchainDB implements ITurtleCoind {
 
         this.m_worker = new RawBlockWorker(database, 'rawblock-processor');
 
-        this.m_worker.init()
-            .then(() => {
-                this.m_useWorkers = true;
+        // We cannot use clustered workers with SQLITE
+        if (this.m_db.type !== DBType.SQLITE) {
+            this.m_worker.init()
+                .then(() => {
+                    this.m_useWorkers = true;
 
-                Logger.info('Connected to RabbitMQ for remote block processing.');
-            })
-            .catch(() => {
-                Logger.warn('Could not connect to RabbitMQ. Using local block processor.');
-            });
+                    Logger.info('Connected to RabbitMQ for remote block processing.');
+                })
+                .catch(() => {
+                    Logger.warn('Could not connect to RabbitMQ. Using local block processor.');
+                });
+        }
     }
 
     /**
@@ -259,9 +264,9 @@ export class BlockchainDB implements ITurtleCoind {
      */
     private async getBlockHeaders (height: number, limit = 30): Promise<TurtleCoindInterfaces.IBlockHeader[]> {
         const [count, rows] = await this.m_db.query(
-            'SELECT block_meta.hash AS hash, prevHash, height, baseReward, difficulty, majorVersion, ' +
-            'minorVersion, nonce, size, utctimestamp, alreadyGeneratedCoins, alreadyGeneratedTransactions, ' +
-            'reward, sizeMedian, totalFeeAmount, transactionsCount, transactionsCumulativeSize, orphan, penalty ' +
+            'SELECT block_meta.hash AS hash, prevhash, height, basereward, difficulty, majorversion, ' +
+            'minorversion, nonce, size, utctimestamp, alreadygeneratedcoins, alreadygeneratedtransactions, ' +
+            'reward, sizemedian, totalfeeamount, transactionscount, transactionscumulativesize, orphan, penalty ' +
             'FROM block_meta LEFT JOIN blockchain ON blockchain.hash = block_meta.hash WHERE height <= ? ORDER BY ' +
             'height DESC LIMIT ?', [height, limit]);
 
@@ -273,24 +278,24 @@ export class BlockchainDB implements ITurtleCoind {
             .map(row => {
                 return {
                     hash: row.hash,
-                    prevHash: row.prevHash || row.prevhash,
+                    prevHash: row.prevhash,
                     height: parseInt(row.height, 10),
-                    baseReward: parseInt(row.baseReward || row.basereward, 10),
+                    baseReward: parseInt(row.basereward, 10),
                     difficulty: parseInt(row.difficulty, 10),
-                    majorVersion: parseInt(row.majorVersion || row.majorversion, 10),
-                    minorVersion: parseInt(row.minorVersion || row.minorversion, 10),
+                    majorVersion: parseInt(row.majorversion, 10),
+                    minorVersion: parseInt(row.minorversion, 10),
                     nonce: parseInt(row.nonce, 10),
                     size: parseInt(row.size),
                     timestamp: new Date(parseInt(row.utctimestamp, 10) * 1000),
-                    alreadyGeneratedCoins: BigInteger(row.alreadyGeneratedCoins || row.alreadygeneratedcoins),
+                    alreadyGeneratedCoins: BigInteger(row.alreadygeneratedcoins),
                     alreadyGeneratedTransactions:
-                        parseInt(row.alreadyGeneratedTransactions || row.alreadygeneratedtransactions, 10),
+                        parseInt(row.alreadygeneratedtransactions, 10),
                     reward: parseInt(row.reward, 10),
-                    sizeMedian: parseInt(row.sizeMedian || row.sizemedian, 10),
-                    totalFeeAmount: parseInt(row.totalFeeAmount || row.totalfeeamount, 10),
+                    sizeMedian: parseInt(row.sizemedian, 10),
+                    totalFeeAmount: parseInt(row.totalfeeamount, 10),
                     transactionsCumulativeSize:
-                        parseInt(row.transactionsCumulativeSize || row.transactionscumulativesize, 10),
-                    transactionCount: parseInt(row.transactionsCount || row.transactionscount, 10),
+                        parseInt(row.transactionscumulativesize, 10),
+                    transactionCount: parseInt(row.transactionscount, 10),
                     depth: topHeight - parseInt(row.height, 10),
                     orphan: (row.orphan === 1 || row.orpahn === '1'),
                     penalty: parseInt(row.penalty, 10)
@@ -413,7 +418,7 @@ export class BlockchainDB implements ITurtleCoind {
      */
     private async getTransactionOutputs (hash: string): Promise<{amount: number, outputKey: string}[]> {
         const [, rows] = await this.m_db.query(
-            'SELECT amount, outputKey FROM transaction_outputs WHERE hash = ? ORDER BY idx ASC', [hash]);
+            'SELECT amount, outputkey FROM transaction_outputs WHERE hash = ? ORDER BY idx ASC', [hash]);
 
         return rows.map(row => {
             return {
@@ -576,20 +581,20 @@ export class BlockchainDB implements ITurtleCoind {
                     update: FKAction.CASCADE
                 }
             },
-            { name: 'prevHash', type: hashType },
-            { name: 'baseReward', type: uint64Type },
+            { name: 'prevhash', type: hashType },
+            { name: 'basereward', type: uint64Type },
             { name: 'difficulty', type: uint32Type },
-            { name: 'majorVersion', type: uint32Type },
-            { name: 'minorVersion', type: uint32Type },
+            { name: 'majorversion', type: uint32Type },
+            { name: 'minorversion', type: uint32Type },
             { name: 'nonce', type: uint32Type },
             { name: 'size', type: uint32Type },
-            { name: 'alreadyGeneratedCoins', type: uint64Type },
-            { name: 'alreadyGeneratedTransactions', type: uint64Type },
+            { name: 'alreadygeneratedcoins', type: uint64Type },
+            { name: 'alreadygeneratedtransactions', type: uint64Type },
             { name: 'reward', type: uint64Type },
-            { name: 'sizeMedian', type: uint32Type },
-            { name: 'totalFeeAmount', type: uint64Type },
-            { name: 'transactionsCumulativeSize', type: uint32Type },
-            { name: 'transactionsCount', type: uint32Type },
+            { name: 'sizemedian', type: uint32Type },
+            { name: 'totalfeeamount', type: uint64Type },
+            { name: 'transactionscumulativesize', type: uint32Type },
+            { name: 'transactionscount', type: uint32Type },
             { name: 'orphan', type: uint32Type },
             { name: 'penalty', type: uint32Type }
         ], ['hash'], tableOptions);
@@ -643,8 +648,8 @@ export class BlockchainDB implements ITurtleCoind {
                     update: FKAction.CASCADE
                 }
             },
-            { name: 'keyImage', type: hashType }
-        ], ['keyImage'], tableOptions);
+            { name: 'keyimage', type: hashType }
+        ], ['keyimage'], tableOptions);
 
         addQuery();
 
@@ -661,13 +666,13 @@ export class BlockchainDB implements ITurtleCoind {
             },
             { name: 'idx', type: uint64Type },
             { name: 'amount', type: uint64Type },
-            { name: 'outputKey', type: hashType },
-            { name: 'globalIdx', type: uint32Type, nullable: true }
+            { name: 'outputkey', type: hashType },
+            { name: 'globalidx', type: uint32Type, nullable: true }
         ], ['hash', 'idx'], tableOptions);
 
         addQuery();
 
-        create = prepareCreateTable(this.m_db.type, 'transaction_paymentIds', [
+        create = prepareCreateTable(this.m_db.type, 'transaction_paymentids', [
             {
                 name: 'hash',
                 type: hashType,
@@ -678,8 +683,8 @@ export class BlockchainDB implements ITurtleCoind {
                     update: FKAction.CASCADE
                 }
             },
-            { name: 'paymentId', type: hashType }
-        ], ['hash', 'paymentId'], tableOptions);
+            { name: 'paymentid', type: hashType }
+        ], ['hash', 'paymentid'], tableOptions);
 
         addQuery();
 
@@ -745,7 +750,7 @@ export class BlockchainDB implements ITurtleCoind {
         txnCount: number
     }[]> {
         const [count, rows] = await this.m_db.query(
-            'SELECT utctimestamp, difficulty, nonce, size, transactionsCount ' +
+            'SELECT utctimestamp, difficulty, nonce, size, transactionscount ' +
             'FROM blockchain LEFT JOIN block_meta ON block_meta.hash = blockchain.hash ' +
             'ORDER BY height DESC LIMIT 2880'
         );
@@ -868,9 +873,9 @@ export class BlockchainDB implements ITurtleCoind {
         }
 
         const _stmts = await prepareMultiInsert(this.m_db, 'block_meta', [
-            'hash', 'prevHash', 'baseReward', 'difficulty', 'majorVersion', 'minorVersion',
-            'nonce', 'size', 'alreadyGeneratedCoins', 'alreadyGeneratedTransactions', 'reward',
-            'sizeMedian', 'totalFeeAmount', 'transactionsCumulativeSize', 'transactionsCount',
+            'hash', 'prevhash', 'basereward', 'difficulty', 'majorversion', 'minorversion',
+            'nonce', 'size', 'alreadygeneratedcoins', 'alreadygeneratedtransactions', 'reward',
+            'sizemedian', 'totalfeeamount', 'transactionscumulativesize', 'transactionscount',
             'orphan', 'penalty'
         ], l_headers);
 
@@ -946,6 +951,8 @@ export class BlockchainDB implements ITurtleCoind {
 
         const timer = new PerformanceTimer();
 
+        let results: SaveRawBlockResponse[] = [];
+
         const promises: Promise<SaveRawBlockResponse>[] = [];
 
         if (this.useWorkers) {
@@ -953,14 +960,18 @@ export class BlockchainDB implements ITurtleCoind {
         }
 
         for (const block of blocks) {
-            if (this.useWorkers) {
+            if (this.m_db.type === DBType.SQLITE) {
+                results.push(await saveRawBlock(this.m_db, block));
+            } else if (this.useWorkers) {
                 promises.push(this.m_worker.saveRawBlock(block));
             } else {
                 promises.push(saveRawBlock(this.m_db, block));
             }
         }
 
-        const results = await Promise.all(promises);
+        if (promises.length > 0) {
+            results = await Promise.all(promises);
+        }
 
         for (const result of results) {
             l_heights.push(result.height);
@@ -1054,7 +1065,7 @@ export class BlockchainDB implements ITurtleCoind {
         const stmts = await prepareMultiUpdate(
             'transaction_outputs',
             ['hash', 'idx'],
-            ['globalIdx', 'amount', 'outputKey'],
+            ['globalidx', 'amount', 'outputkey'],
             l_indexes);
 
         Logger.debug('Updating %s transaction_outputs using %s statements...',
@@ -1189,7 +1200,7 @@ export class BlockchainDB implements ITurtleCoind {
 
         for (const txn of txns) {
             const [, idxes] = await this.m_db.query(
-                'SELECT globalIdx FROM transaction_outputs WHERE hash = ? ORDER BY idx', [txn]);
+                'SELECT globalidx FROM transaction_outputs WHERE hash = ? ORDER BY idx', [txn]);
 
             results.push({
                 hash: txn,
@@ -1234,7 +1245,7 @@ export class BlockchainDB implements ITurtleCoind {
     public async randomIndexes (amounts: number[], count: number): Promise<TurtleCoindInterfaces.IRandomOutput[]> {
         const maxGlobalIdx = async (amount: number): Promise<number> => {
             const [count, rows] = await this.m_db.query(
-                'SELECT MAX(globalIdx) AS maximum FROM transaction_outputs WHERE amount = ?',
+                'SELECT MAX(globalidx) AS maximum FROM transaction_outputs WHERE amount = ?',
                 [amount]);
 
             if (count === 0) throw new Error('Amount not found in database');
@@ -1257,7 +1268,7 @@ export class BlockchainDB implements ITurtleCoind {
             }
 
             const [count, rows] = await this.m_db.query(
-                'SELECT globalIdx, outputKey FROM transaction_outputs ' +
+                'SELECT globalidx, outputKey FROM transaction_outputs ' +
                 'WHERE amount = ? AND (' + clauses.join(' OR ') + ')',
                 [amount]);
 
@@ -1475,7 +1486,7 @@ export class BlockchainDB implements ITurtleCoind {
 
         const topBlockHeader = await this.lastBlockHeader();
 
-        const skip = (skipCoinbaseTransactions) ? ' AND transactionsCount > 1 ' : '';
+        const skip = (skipCoinbaseTransactions) ? ' AND transactionscount > 1 ' : '';
 
         const blocks: TurtleCoindInterfaces.ISyncBlock[] = [];
 
