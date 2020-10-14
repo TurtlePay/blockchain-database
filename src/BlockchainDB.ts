@@ -974,6 +974,8 @@ export class BlockchainDB implements ITurtleCoind {
         }
 
         if (promises.length > 0) {
+            Logger.info('Awaiting response from remote workers...');
+
             results = await Promise.all(promises);
         }
 
