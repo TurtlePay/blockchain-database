@@ -49,7 +49,7 @@ export class Collector extends EventEmitter {
 
         this.transactionPoolTimer = new Metronome(5000, true);
 
-        this.syncTimer = new Metronome(5000, true);
+        this.syncTimer = new Metronome(250, true);
 
         this.m_default_block_batch_size = block_batch_size;
 
