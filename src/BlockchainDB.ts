@@ -1028,7 +1028,7 @@ export class BlockchainDB implements ITurtleCoind {
 
         const prepareTransactionPaymentIDsInsert = async (values: IValueArray): Promise<IBulkQuery[]> => {
             return prepareMultiInsert(
-                'INSERT INTO transaction_paymentids (hash, paymentId) VALUES %L', values, 'transaction_paymentids');
+                'INSERT INTO transaction_paymentIds (hash, paymentId) VALUES %L', values, 'transaction_paymentIds');
         };
 
         const combine = (a: IBulkQuery[], b: IBulkQuery[]): IBulkQuery[] => {
