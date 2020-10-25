@@ -583,7 +583,7 @@ export class BlockchainDB implements ITurtleCoind {
             },
             { name: 'prevhash', type: hashType },
             { name: 'basereward', type: uint64Type },
-            { name: 'difficulty', type: uint32Type },
+            { name: 'difficulty', type: uint64Type },
             { name: 'majorversion', type: uint32Type },
             { name: 'minorversion', type: uint32Type },
             { name: 'nonce', type: uint32Type },
