@@ -44,7 +44,7 @@
     "db-abstraction": "^1.0.4",
     "dotenv": "^8.2.0",
     "node-metronome": "0.0.12",
-    "turtlecoin-utils": "^3.0.4"
+    "turtlecoin-utils": "^3.0.5"
   },
   "devDependencies": {
     "@types/node": "^14.11.2",
