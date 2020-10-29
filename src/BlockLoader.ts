@@ -36,7 +36,15 @@ export interface ProcessedBlock {
 
 /** @ignore */
 export async function loadRawBlock (rawBlock: TurtleCoindInterfaces.IRawBlock): Promise<ILoadedBlock> {
-    const block: ILoadedBlock = await Block.from(rawBlock.blob);
+    let block: ILoadedBlock;
+
+    try {
+        block = await Block.from(rawBlock.blob);
+    } catch (e) {
+        Logger.warn('Failed to parse block: %s', rawBlock.blob);
+
+        throw e;
+    }
 
     const timer = new PerformanceTimer();
 
@@ -52,16 +60,22 @@ export async function loadRawBlock (rawBlock: TurtleCoindInterfaces.IRawBlock): 
     block.txns = [block.minerTransaction];
 
     const loadTransaction = async (txn: string): Promise<Transaction> => {
-        const timer = new PerformanceTimer();
+        try {
+            const timer = new PerformanceTimer();
 
-        const tx = await Transaction.from(txn);
+            const tx = await Transaction.from(txn);
 
-        await tx.hash();
+            await tx.hash();
 
-        Logger.debug('Transaction %s decoded successfully in %s seconds',
-            await tx.hash(), timer.elapsed.seconds.toFixed(2));
+            Logger.debug('Transaction %s decoded successfully in %s seconds',
+                await tx.hash(), timer.elapsed.seconds.toFixed(2));
 
-        return tx;
+            return tx;
+        } catch (e) {
+            Logger.warn('Failed to parse block [%s] transaction: %s', await block.hash(), txn);
+
+            throw e;
+        }
     };
 
     const txns = await Promise.all(rawBlock.transactions.map(tx => loadTransaction(tx)));
