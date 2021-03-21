@@ -3,10 +3,11 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>TurtlePay Blockchain Database</title>
-	<meta name="description" content="Documentation for TurtlePay Blockchain Database">
+	<title>@turtlepay/database</title>
+	<meta name="description" content="Documentation for @turtlepay/database">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="assets/css/main.css">
+	<script async src="assets/js/search.js" id="search-script"></script>
 </head>
 <body>
 <header>
@@ -22,7 +23,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="index.html" class="title">TurtlePay Blockchain Database</a>
+					<a href="index.html" class="title">@turtlepay/database</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -47,12 +48,7 @@
 	</div>
 	<div class="tsd-page-title">
 		<div class="container">
-			<ul class="tsd-breadcrumb">
-				<li>
-					<a href="globals.html">Globals</a>
-				</li>
-			</ul>
-			<h1>TurtlePay Blockchain Database</h1>
+			<h1>@turtlepay/database</h1>
 		</div>
 	</div>
 </header>
@@ -103,7 +99,7 @@
 					<li>SSD Storage</li>
 				</ul>
 				<p><strong>Note</strong>: Its possible and advisable that in lieu of operating large systems that you utilize a DBMS that allows for sharding/clustering and load balancing connections to the system(s). Please refer to your DBMS documentation for more information.</p>
-				<p><strong><em>Warning</em></strong>: Running the DB on system(s) with less than the minimum hardware requirements above will cause performance issues. If you are experiencing issues please verify that the system you are using meets the minimum requirements above. We cannot assist with performance issues with implementations that do not meet the above minimum requirements.</p>
+				<p><em><strong>Warning</strong></em>: Running the DB on system(s) with less than the minimum hardware requirements above will cause performance issues. If you are experiencing issues please verify that the system you are using meets the minimum requirements above. We cannot assist with performance issues with implementations that do not meet the above minimum requirements.</p>
 				<a href="#recommended-reading" id="recommended-reading" style="color: inherit; text-decoration: none;">
 					<h2>Recommended Reading</h2>
 				</a>
@@ -125,7 +121,8 @@
 				<a href="#install" id="install" style="color: inherit; text-decoration: none;">
 					<h2>Install</h2>
 				</a>
-				<pre><code class="language-sh">yarn install @turtlepay/database</code></pre>
+				<pre><code class="language-sh"><span style="color: #000000">yarn install @turtlepay/database</span>
+</code></pre>
 				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
 					<h2>Usage</h2>
 				</a>
@@ -135,48 +132,52 @@
 				<ol>
 					<li>Set your environment variables and start the service up</li>
 				</ol>
-				<pre><code class="language-sh"><span class="hljs-built_in">export</span> USE_MYSQL=<span class="hljs-literal">true</span>
-<span class="hljs-built_in">export</span> DB_HOST=localhost
-<span class="hljs-built_in">export</span> DB_PORT=3306
-<span class="hljs-built_in">export</span> DB_USER=yourdbusername
-<span class="hljs-built_in">export</span> DB_PASS=yourdbpassword
-<span class="hljs-built_in">export</span> DB_NAME=turtlecoin
-<span class="hljs-built_in">export</span> NODE_HOST=localhost
-<span class="hljs-built_in">export</span> NODE_PORT=11898
-<span class="hljs-built_in">export</span> NODE_SSL=0
-yarn start</code></pre>
+				<pre><code class="language-sh"><span style="color: #0000FF">export</span><span style="color: #000000"> USE_MYSQL=true</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> DB_HOST=localhost</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> DB_PORT=3306</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> DB_USER=yourdbusername</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> DB_PASS=yourdbpassword</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> DB_NAME=turtlecoin</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> NODE_HOST=localhost</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> NODE_PORT=11898</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> NODE_SSL=0</span>
+<span style="color: #000000">yarn start</span>
+</code></pre>
 				<a href="#postgres" id="postgres" style="color: inherit; text-decoration: none;">
 					<h4>Postgres</h4>
 				</a>
 				<ol>
 					<li>Set your environment variables and start the service up</li>
 				</ol>
-				<pre><code class="language-sh"><span class="hljs-built_in">export</span> USE_POSTGRES=<span class="hljs-literal">true</span>
-<span class="hljs-built_in">export</span> DB_HOST=localhost
-<span class="hljs-built_in">export</span> DB_PORT=3306
-<span class="hljs-built_in">export</span> DB_USER=yourdbusername
-<span class="hljs-built_in">export</span> DB_PASS=yourdbpassword
-<span class="hljs-built_in">export</span> DB_NAME=turtlecoin
-<span class="hljs-built_in">export</span> NODE_HOST=localhost
-<span class="hljs-built_in">export</span> NODE_PORT=11898
-<span class="hljs-built_in">export</span> NODE_SSL=0
-yarn start</code></pre>
+				<pre><code class="language-sh"><span style="color: #0000FF">export</span><span style="color: #000000"> USE_POSTGRES=true</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> DB_HOST=localhost</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> DB_PORT=3306</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> DB_USER=yourdbusername</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> DB_PASS=yourdbpassword</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> DB_NAME=turtlecoin</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> NODE_HOST=localhost</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> NODE_PORT=11898</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> NODE_SSL=0</span>
+<span style="color: #000000">yarn start</span>
+</code></pre>
 				<a href="#sqlite" id="sqlite" style="color: inherit; text-decoration: none;">
 					<h4>SQLite</h4>
 				</a>
 				<ol>
 					<li>Set your environment variables and start the service up</li>
 				</ol>
-				<pre><code class="language-sh"><span class="hljs-built_in">export</span> USE_SQLITE=<span class="hljs-literal">true</span>
-<span class="hljs-built_in">export</span> SQLITE_PATH=turtlecoin.sqlite3
-<span class="hljs-built_in">export</span> NODE_HOST=localhost
-<span class="hljs-built_in">export</span> NODE_PORT=11898
-<span class="hljs-built_in">export</span> NODE_SSL=0
-yarn start</code></pre>
+				<pre><code class="language-sh"><span style="color: #0000FF">export</span><span style="color: #000000"> USE_SQLITE=true</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> SQLITE_PATH=turtlecoin.sqlite3</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> NODE_HOST=localhost</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> NODE_PORT=11898</span>
+<span style="color: #0000FF">export</span><span style="color: #000000"> NODE_SSL=0</span>
+<span style="color: #000000">yarn start</span>
+</code></pre>
 				<a href="#run-tests" id="run-tests" style="color: inherit; text-decoration: none;">
 					<h2>Run tests</h2>
 				</a>
-				<pre><code class="language-sh">yarn <span class="hljs-built_in">test</span></code></pre>
+				<pre><code class="language-sh"><span style="color: #000000">yarn </span><span style="color: #795E26">test</span>
+</code></pre>
 				<a href="#author" id="author" style="color: inherit; text-decoration: none;">
 					<h2>Author</h2>
 				</a>
@@ -204,8 +205,8 @@ yarn start</code></pre>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 			<nav class="tsd-navigation primary">
 				<ul>
-					<li class="globals  ">
-						<a href="globals.html"><em>Globals</em></a>
+					<li class=" ">
+						<a href="modules.html">Exports</a>
 					</li>
 				</ul>
 			</nav>
@@ -218,7 +219,7 @@ yarn start</code></pre>
 						<a href="classes/collector.html" class="tsd-kind-icon">Collector</a>
 					</li>
 					<li class=" tsd-kind-function">
-						<a href="globals.html#getdatabase" class="tsd-kind-icon">get<wbr>Database</a>
+						<a href="modules.html#getdatabase" class="tsd-kind-icon">get<wbr>Database</a>
 					</li>
 				</ul>
 			</nav>
@@ -234,7 +235,8 @@ yarn start</code></pre>
 				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
 			</ul>
 			<ul class="tsd-legend">
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
 			</ul>
 		</div>
 	</div>

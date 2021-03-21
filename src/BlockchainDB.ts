@@ -1519,7 +1519,8 @@ export class BlockchainDB implements ITurtleCoind {
                     }),
                     publicKey: block.minerTransaction.publicKey || '',
                     unlockTime: (typeof block.minerTransaction.unlockTime === 'number')
-                        ? BigInteger(block.minerTransaction.unlockTime) : block.minerTransaction.unlockTime
+                        ? BigInteger(block.minerTransaction.unlockTime)
+                        : block.minerTransaction.unlockTime
                 };
             }
 
