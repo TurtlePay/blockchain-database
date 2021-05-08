@@ -1,6 +1,6 @@
 {
   "name": "@turtlepay/database",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "TurtlePay Blockchain Database Interface",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -38,29 +38,29 @@
   },
   "homepage": "https://github.com/turtlepay/blockchain-database#readme",
   "dependencies": {
-    "@turtlepay/logger": "^0.0.3",
-    "@turtlepay/rabbitmq": "^0.0.5",
+    "@turtlepay/logger": "^0.0.4",
+    "@turtlepay/rabbitmq": "^0.0.6",
     "big-integer": "^1.6.48",
-    "db-abstraction": "^1.0.6",
-    "dotenv": "^8.2.0",
-    "node-metronome": "^0.0.12",
+    "db-abstraction": "^1.0.7",
+    "dotenv": "^9.0.0",
+    "node-metronome": "^0.0.13",
     "turtlecoin-utils": "^3.0.9"
   },
   "devDependencies": {
     "@types/mocha": "^8.2.2",
-    "@types/node": "^14.14.35",
-    "@typescript-eslint/eslint-plugin": "^4.18.0",
-    "@typescript-eslint/parser": "^4.18.0",
-    "eslint": "^7.22.0",
+    "@types/node": "^15.0.2",
+    "@typescript-eslint/eslint-plugin": "^4.22.1",
+    "@typescript-eslint/parser": "^4.22.1",
+    "eslint": "^7.26.0",
     "eslint-config-standard": "^16.0.2",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^4.3.1",
-    "eslint-plugin-standard": "^4.0.1",
-    "mocha": "^8.3.2",
+    "eslint-plugin-promise": "^5.1.0",
+    "eslint-plugin-standard": "^5.0.0",
+    "mocha": "^8.4.0",
     "ts-node": "^9.1.1",
-    "typedoc": "^0.20.32",
+    "typedoc": "^0.20.36",
     "typedoc-plugin-no-inherit": "^1.2.2",
-    "typescript": "^4.2.3"
+    "typescript": "^4.2.4"
   }
 }
